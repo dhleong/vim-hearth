@@ -1,4 +1,3 @@
-
 func! hearth#util#SessionExists()
     " Check if there's an existing session for the current file/ns
 
