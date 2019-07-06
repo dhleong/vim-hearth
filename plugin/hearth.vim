@@ -11,6 +11,6 @@ augroup HearthAuto
 
     " NOTE we don't auto-Require for cljs because it's quite slow
     " TODO we should probably make an option for it, though
-    autocmd BufWritePost *.clj,*.cljc call <SID>MaybeRequire()
+    autocmd BufWritePost *.clj,*.clj[cs] call <SID>MaybeRequire()
 augroup END
 
