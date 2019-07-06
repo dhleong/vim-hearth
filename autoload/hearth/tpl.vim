@@ -50,7 +50,18 @@ func! hearth#tpl#Fill()
     " Fill the current buffer with an appropriate template
 
     let type = expand('%:e')
-    let ns = fireplace#ns()
+    let ns = ''
+    if hearth#util#SessionExists()
+        let ns = fireplace#ns()
+    else
+        " TODO
+    endif
+
+    if ns ==# ''
+        " couldn't figure out the ns
+        return
+    endif
+
     let tpl = hearth#tpl#Generate(type, ns)
     call append(0, tpl)
 
