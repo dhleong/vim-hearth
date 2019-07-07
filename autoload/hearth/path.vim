@@ -46,3 +46,7 @@ func! hearth#path#GuessPort(...)
     return default
 endfunc
 
+func! hearth#path#FromNs(ns, ext)
+    return tr(a:ns, '-.', '_/') . '.' . a:ext
+endfunc
+

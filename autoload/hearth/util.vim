@@ -9,3 +9,14 @@ func! hearth#util#SessionExists()
     endtry
 endfunc
 
+func! hearth#util#Stringify(string)
+    return '"' . escape(a:string, '"\') . '"'
+endfunc
+
+func! hearth#util#Symbolify(symbol)
+    if a:symbol =~# '^[[:alnum:]?*!+/=<>.:-]\+$'
+        return "'" . a:symbol
+    else
+        return '(symbol ' . hearth#util#Stringify(a:symbol) . ')'
+    endif
+endfunc
