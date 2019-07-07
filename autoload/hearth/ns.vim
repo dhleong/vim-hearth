@@ -6,13 +6,6 @@ func! s:onFileLoaded(bufnr, resp) abort
         return
     endif
 
-    if b:mantel_pendingRequests > 0
-        " TODO mantel highlight already running; future work on mantel should
-        " be able to handle this case by canceling currently-running requests,
-        " but currently this just creates confusion
-        return
-    endif
-
     try
         call mantel#Highlight()
     catch /E117/

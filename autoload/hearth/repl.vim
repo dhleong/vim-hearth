@@ -13,7 +13,7 @@ func! hearth#repl#Connect(...)
         " prepare piggieback
         if hearth#path#DetectShadowJs()
             " TODO pick build?
-            Piggieback :lib
+            Piggieback :app
         else
             Piggieback (figwheel-sidecar.repl-api/repl-env)
         endif
