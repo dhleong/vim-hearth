@@ -29,7 +29,7 @@ func! s:parseNsForm(lines) " {{{
     return [nsStart, nsEnd, requireStart, requireEnd]
 endfunc " }}}
 
-func! s:chooseInsert(lines, ns, start, end)
+func! s:chooseInsert(lines, ns, start, end) "{{{
     " Choose the index within [start, end] of `lines`
     " in which to insert an entry for `ns`
 
@@ -80,9 +80,9 @@ func! s:chooseInsert(lines, ns, start, end)
     endfor
 
     " TODO is this always correct?
-    let indent .= repeat(' ', 2 * targetDepth)
+    let indent .= repeat(' ', targetDepth)
     return { 'indent': indent, 'index': insertAt, 'ns': ns, 'suffix': suffix }
-endfunc
+endfunc"}}}
 
 func! s:createForm(ns, mode, args)
     let form = '[' . a:ns

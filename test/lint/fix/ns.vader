@@ -72,7 +72,7 @@ Expect clojure (Inserted in correct place):
 Given clojure (Simple ns with single, nested :require entry):
   (ns serenity.core
     (:require [serenity
-                [util :as util]]))
+               [util :as util]]))
 
 Execute (Insert nested ns in middle):
   call InsertNs('serenity.cargo', 'as', 'cargo')
@@ -80,8 +80,8 @@ Execute (Insert nested ns in middle):
 Expect clojure (Nested insert in middle):
   (ns serenity.core
     (:require [serenity
-                [cargo :as cargo]
-                [util :as util]]))
+               [cargo :as cargo]
+               [util :as util]]))
 
 "
 " =========================================================
@@ -90,7 +90,7 @@ Expect clojure (Nested insert in middle):
 Given clojure (Simple ns with single, nested :require entry):
   (ns serenity.core
     (:require [serenity
-                [cargo :as cargo]]))
+               [cargo :as cargo]]))
 
 Execute (Insert nested ns at end):
   call InsertNs('serenity.util', 'as', 'util')
@@ -98,5 +98,5 @@ Execute (Insert nested ns at end):
 Expect clojure (Nested insert at end):
   (ns serenity.core
     (:require [serenity
-                [cargo :as cargo]
-                [util :as util]]))
+               [cargo :as cargo]
+               [util :as util]]))
