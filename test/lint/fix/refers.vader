@@ -64,3 +64,39 @@ Expect clojure (Inserted in correct place):
     (:require [clojure.string :as str]
               [serenity.cargo :as cargo]
               [serenity.util :as util]))
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with single, nested :require entry):
+  (ns serenity.core
+    (:require [serenity
+                [util :as util]]))
+
+Execute (Insert nested ns in middle):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Nested insert in middle):
+  (ns serenity.core
+    (:require [serenity
+                [cargo :as cargo]
+                [util :as util]]))
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with single, nested :require entry):
+  (ns serenity.core
+    (:require [serenity
+                [cargo :as cargo]]))
+
+Execute (Insert nested ns at end):
+  call InsertNs('serenity.util', 'as', 'util')
+
+Expect clojure (Nested insert at end):
+  (ns serenity.core
+    (:require [serenity
+                [cargo :as cargo]
+                [util :as util]]))
