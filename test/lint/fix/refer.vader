@@ -14,4 +14,19 @@ Expect clojure (Inserted first :require):
   (ns serenity.core
     (:require [serenity.cargo :refer [geisha-dolls]]))
 
+"
+" =========================================================
+"
+
+Given clojure (Single refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [medicine]]))
+
+Execute (Insert first :require):
+  call InsertNs('serenity.cargo', 'refer', 'geisha-dolls')
+
+Expect clojure (Inserted first :require):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls medicine]]))
+
 

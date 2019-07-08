@@ -1,6 +1,6 @@
 func! s:findCandidateSymbols(symbol)
-    " TODO namespace-aliases op from refactor-nrepl middleware could be
-    " useful here too?
+    " TODO resolve-missing op from refactor-nrepl middleware could be
+    " useful here?
 
     let matches = hearth#util#apropos#Search(a:symbol)
     if empty(matches)

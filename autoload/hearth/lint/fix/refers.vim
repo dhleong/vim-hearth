@@ -40,6 +40,7 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
     let insertAt = a:start
     let indent = '            '  " default for top level of (:require)
     let suffix = ''
+    let exists = 0
 
     for i in range(a:start, a:end)
         let line = a:lines[i]
@@ -64,6 +65,7 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
 
         if ns == currentNs
             let insertAt = i
+            let exists = 1
             break
         elseif ns < currentNs
             let insertAt = i - 1
@@ -81,7 +83,13 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
 
     " TODO is this always correct?
     let indent .= repeat(' ', targetDepth)
-    return { 'indent': indent, 'index': insertAt, 'ns': ns, 'suffix': suffix }
+    return {
+        \ 'exists': exists,
+        \ 'indent': indent,
+        \ 'index': insertAt,
+        \ 'ns': ns,
+        \ 'suffix': suffix
+        \ }
 endfunc"}}}
 
 func! s:createForm(ns, mode, args)
@@ -94,6 +102,13 @@ func! s:createForm(ns, mode, args)
     endif
 
     return form . ']'
+endfunc
+
+func! s:insertRefer(line, symbol)
+    let m = matchlist(a:line, ':refer \[\([^\]]*\)')
+    let items = split(m[1], '\s\+')
+    let newItems = sort(insert(items, a:symbol))
+    return substitute(a:line, m[1], join(newItems, ' '), '')
 endfunc
 
 func! hearth#lint#fix#refers#Insert(lines, ns, mode, ...)
@@ -114,6 +129,15 @@ func! hearth#lint#fix#refers#Insert(lines, ns, mode, ...)
     " pick an appropriate place to insert
     let insert = s:chooseInsert(lines, a:ns, requireStart, requireEnd)
     let index = insert.index
+    if insert.exists && a:mode ==# 'refer'
+        " insert a new refer for an existing ns
+        let lines[index] = s:insertRefer(lines[index], a:1)
+        return lines
+    elseif insert.exists
+        " already refer'd?
+        return
+    endif
+
     let form = s:createForm(insert.ns, a:mode, a:000)
 
     if index < requireStart
