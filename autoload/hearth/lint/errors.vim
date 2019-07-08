@@ -7,6 +7,7 @@ func! hearth#lint#errors#Expand(lint)
         let kind = match[1]
         let symbol = match[2]
         let a:lint.end_col = a:lint.col + len(symbol)
+        let a:lint.nr = 'symbol:' . kind
         return a:lint
     endif
 
@@ -14,6 +15,7 @@ func! hearth#lint#errors#Expand(lint)
     if !empty(match)
         let ns = match[1]
         let a:lint.end_col = a:lint.col + len(ns)
+        let a:lint.nr = 'ns:' . ns
         return a:lint
     endif
 

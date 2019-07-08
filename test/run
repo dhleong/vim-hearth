@@ -1,0 +1,31 @@
+#!/bin/bash
+
+dir=$(dirname "${BASH_SOURCE[0]}")
+if [ "$dir" = "." ]
+then
+    cd ..
+fi
+
+VADER_PATH=vader.vim
+
+if ! [ -d $VADER_PATH ]
+then
+    # local testing
+    VADER_PATH=~/.vim/bundle/vader.vim
+fi
+
+FLAGS="-esNu"
+
+if ! [ -z "$TRAVIS_BRANCH" ]
+then
+    # try just -Nu flags on travis; the script hangs waiting
+    # for input locally otherwise...
+    FLAGS="-Nu"
+fi
+
+vim $FLAGS <(cat << VIMRC
+set rtp+=$VADER_PATH
+set rtp+=.
+VIMRC) -c 'Vader! test/**' > /dev/null
+
+

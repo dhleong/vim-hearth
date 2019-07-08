@@ -1,0 +1,13 @@
+Execute (Provide util fns):
+  func! InsertNs(ns, mode, ...)
+    let results = []
+    let input = getline(0, line('$'))
+    if a:0 == 0
+      let results = hearth#lint#fix#refers#Insert(input, a:ns, a:mode)
+    else
+      let results = hearth#lint#fix#refers#Insert(input, a:ns, a:mode, a:1)
+    endif
+
+    norm ggdG
+    call setline(1, l:results)
+  endfunc

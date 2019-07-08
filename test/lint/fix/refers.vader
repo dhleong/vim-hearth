@@ -1,0 +1,66 @@
+Include: _setup.vader
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with :require entries):
+  (ns serenity.core)
+
+Execute (Insert first :require):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Inserted first :require):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with a single :require entry):
+  (ns serenity.core
+    (:require [clojure.string :as str]))
+
+Execute (Insert ns at end):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Inserted at end):
+  (ns serenity.core
+    (:require [clojure.string :as str]
+              [serenity.cargo :as cargo]))
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with a single :require entry):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+Execute (Insert clojure ns at beginning):
+  call InsertNs('clojure.string', 'as', 'str')
+
+Expect clojure (Inserted at beginning):
+  (ns serenity.core
+    (:require [clojure.string :as str]
+              [serenity.cargo :as cargo]))
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with multiple :require entries):
+  (ns serenity.core
+    (:require [clojure.string :as str]
+              [serenity.util :as util]))
+
+Execute (Insert ns in middle):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Inserted in correct place):
+  (ns serenity.core
+    (:require [clojure.string :as str]
+              [serenity.cargo :as cargo]
+              [serenity.util :as util]))
