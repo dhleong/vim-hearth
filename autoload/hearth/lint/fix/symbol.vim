@@ -14,12 +14,11 @@ endfunc
 func! hearth#lint#fix#symbol#Fix(bufnr, lines, symbol)
     let candidates = s:findCandidateSymbols(a:symbol)
 
-    if len(candidates) == 1
-        " easy case
-        let ns = candidates[0].ns
-        let symbol = candidates[0].symbol
-        return hearth#lint#fix#refers#Insert(a:lines, ns, 'refer', symbol)
-    endif
-
-    " TODO choose?
+    let namespaces = map(candidates, 'v:val.ns')
+    return hearth#choose#OneOf(namespaces, { chosenNs ->
+            \ hearth#lint#fix#refers#Insert(
+            \ a:lines,
+            \ chosenNs, 'refer', a:symbol
+            \ )
+        \ }, hearth#ale#Defer())
 endfunc

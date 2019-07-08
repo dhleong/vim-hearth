@@ -33,9 +33,7 @@ endfunc
 func! hearth#lint#fix#ns#Fix(bufnr, lines, alias)
     let namespaces = s:findCandidateNs(a:alias)
 
-    if len(namespaces) == 1
-        " easy case
-        let ns = namespaces[0]
-        return hearth#lint#fix#refers#Insert(a:lines, ns, 'as', a:alias)
-    endif
+    return hearth#choose#OneOf(namespaces, { ns ->
+            \ hearth#line#fix#refers#Insert(a:lines, ns, 'as', a:alias)
+        \ }, hearth#ale#Defer())
 endfunc

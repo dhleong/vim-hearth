@@ -9,7 +9,6 @@ func! hearth#lint#fix#Fix(bufnr, lines)
     let lints = filter(lints, 'v:val.linter_name ==# "hearth"')
 
     if !len(lints) || !has_key(lints[0], 'nr') || lints[0].nr == -1
-        echom lints[0]
         return
     endif
 

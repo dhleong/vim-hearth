@@ -18,6 +18,7 @@ Optional (encouraged) dependencies:
 
 - [ale][2]: we provide some extra async linting and fixits
 - [vim-mantel][3]: for async semantic highlighting
+- [fzf][4]: for choosing between candidates for auto-import
 
 Features:
 
@@ -26,7 +27,7 @@ Features:
 - [x] Add indication for syntax errors that [clj-kondo][4] doesn't catch
 - [x] Improved test-running tools (including support for Clojurescript)
 - [x] Simplified Fireplace REPL connection
-- [ ] ALE fixer for missing `:require` forms (WIP!)
+- [x] ALE fixer for missing `:require` forms (WIP, but usable!)
 
 [1]: https://github.com/tpope/vim-fireplace
 [2]: https://github.com/w0rp/ale
