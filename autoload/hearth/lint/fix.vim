@@ -1,10 +1,8 @@
 
 let s:fixers = {
     \ 'ns': function('hearth#lint#fix#ns#Fix'),
+    \ 'symbol': function('hearth#lint#fix#symbol#Fix'),
     \ }
-
-    " TODO:
-    " \ 'symbol': function('hearth#lint#fix#symbol#Fix'),
 
 func! hearth#lint#fix#Fix(bufnr, lines)
     let lints = ale#engine#GetLoclist(a:bufnr)

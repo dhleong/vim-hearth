@@ -8,25 +8,19 @@ func! s:findCandidateNs(alias)
     " TODO namespace-aliases op from refactor-nrepl middleware could be
     " useful?
 
-    let resp = fireplace#message({
-        \ 'op': 'apropos',
-        \ 'query': a:alias
-        \ })
-
-    if !has_key(resp[0], 'apropos-matches')
+    let matches = hearth#util#apropos#Search(a:alias . '/')
+    if empty(matches)
         echom 'No matches for ' . a:alias
         return
     endif
 
-    let matches = resp[0]['apropos-matches']
-    let expected = '\H' . a:alias . '/'
-    let candidates = filter(matches, 'v:val.name =~# expected')
+    let expected = '\<' . a:alias . '$'
+    let candidates = filter(matches, 'v:val.ns =~# expected')
 
     " find all *unique* namespace candidates
     let namespaces = {}
     for c in candidates
-        let ns = c.name[0:stridx(c.name, '/')-1]
-        let namespaces[ns] = 1
+        let namespaces[c.ns] = 1
     endfor
 
     if has_key(s:commonAliases, a:alias)

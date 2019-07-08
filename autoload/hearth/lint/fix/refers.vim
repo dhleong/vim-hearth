@@ -89,6 +89,8 @@ func! s:createForm(ns, mode, args)
 
     if a:mode ==# 'as'
         let form .= ' :as ' . a:args[0]
+    elseif a:mode ==# 'refer'
+        let form .= ' :refer [' . a:args[0] . ']'
     endif
 
     return form . ']'

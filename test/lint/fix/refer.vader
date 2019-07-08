@@ -1,0 +1,17 @@
+Include: _setup.vader
+
+"
+" =========================================================
+"
+
+Given clojure (Empty ns):
+  (ns serenity.core)
+
+Execute (Insert first :require):
+  call InsertNs('serenity.cargo', 'refer', 'geisha-dolls')
+
+Expect clojure (Inserted first :require):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls]]))
+
+
