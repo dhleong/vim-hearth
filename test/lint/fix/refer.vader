@@ -33,6 +33,46 @@ Expect clojure (Inserted first :require):
 " =========================================================
 "
 
+Given clojure (Multi-nested requires):
+  (ns serenity.core
+    (:require [serenity
+               [cargo :refer [medicine]]
+               [fuel :as fuel]]))
+
+Execute (Insert :refer before nested):
+  call InsertNs('alliance.ships', 'refer', 'magellan')
+
+Expect clojure (Inserted before nested form):
+  (ns serenity.core
+    (:require [alliance.ships :refer [magellan]]
+              [serenity
+               [cargo :refer [medicine]]
+               [fuel :as fuel]]))
+
+"
+" =========================================================
+"
+
+Given clojure (Multi-nested requires):
+  (ns serenity.core
+    (:require [serenity
+               [cargo :refer [medicine]]
+               [fuel :as fuel]]))
+
+Execute (Insert :refer after nested):
+  call InsertNs('star.wars', 'refer', 'spaceships')
+
+Expect clojure (Inserted after nested form):
+  (ns serenity.core
+    (:require [serenity
+               [cargo :refer [medicine]]
+               [fuel :as fuel]]
+              [star.wars :refer [spaceships]]))
+
+"
+" =========================================================
+"
+
 Given clojure (Single :as clause):
   (ns serenity.core
     (:require [serenity.cargo :as totally-legal]))

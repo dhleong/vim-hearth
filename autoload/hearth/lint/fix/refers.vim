@@ -37,7 +37,7 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
     let targetDepth = 0
     let ns = a:ns
 
-    let insertAt = a:start
+    let insertAt = a:end
     let indent = '            '  " default for top level of (:require)
     let suffix = ''
     let exists = 0
@@ -53,6 +53,15 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
 
         let currentNs = m[1]
 
+        if ns == currentNs
+            let insertAt = i
+            let exists = 1
+            break
+        elseif ns < currentNs
+            let insertAt = i - 1
+            break
+        endif
+
         if depth > targetDepth && stridx(ns, currentNs) == 0
             " nested ns
             let ns = ns[len(currentNs) + 1:]
@@ -61,15 +70,6 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
         elseif depth > targetDepth
             " unrelated nested ns form
             continue
-        endif
-
-        if ns == currentNs
-            let insertAt = i
-            let exists = 1
-            break
-        elseif ns < currentNs
-            let insertAt = i - 1
-            break
         elseif depth < targetDepth
             " only possible if we wanted a nested ns and ours belongs
             " at the end of the list
