@@ -29,4 +29,19 @@ Expect clojure (Inserted first :require):
   (ns serenity.core
     (:require [serenity.cargo :refer [geisha-dolls medicine]]))
 
+"
+" =========================================================
+"
+
+Given clojure (Single :as clause):
+  (ns serenity.core
+    (:require [serenity.cargo :as totally-legal]))
+
+Execute (Insert :refer):
+  call InsertNs('serenity.cargo', 'refer', 'geisha-dolls')
+
+Expect clojure (Add :refer to :as clause):
+  (ns serenity.core
+    (:require [serenity.cargo :as totally-legal :refer [geisha-dolls]]))
+
 

@@ -121,9 +121,22 @@ endfunc
 
 func! s:insertRefer(line, symbol)
     let m = matchlist(a:line, ':refer \[\([^\]]*\)')
-    let items = split(m[1], '\s\+')
-    let newItems = sort(insert(items, a:symbol))
-    return substitute(a:line, m[1], join(newItems, ' '), '')
+    if !empty(m)
+        " easy case; add to an existing refer
+        let items = split(m[1], '\s\+')
+        let newItems = sort(insert(items, a:symbol))
+        return substitute(a:line, m[1], join(newItems, ' '), '')
+    endif
+
+    " TODO the :refer could be on another line...
+
+    " insert the :refer after an :as, probably
+    let end = stridx(a:line, ']')
+    if end == -1
+        return a:line . ' :refer [' . a:symbol . ']'
+    endif
+
+    return a:line[:end-1] . ' :refer [' . a:symbol . ']' . a:line[end :]
 endfunc
 
 func! s:tryInsert(line, mode, args)
