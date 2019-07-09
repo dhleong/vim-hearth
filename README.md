@@ -19,6 +19,7 @@ Optional (encouraged) dependencies:
 - [ale][2]: we provide some extra async linting and fixits
 - [vim-mantel][3]: for async semantic highlighting
 - [fzf][4]: for choosing between candidates for auto-import
+- [refactor-nrepl][5]: can improve auto import
 
 Features:
 
@@ -33,3 +34,4 @@ Features:
 [2]: https://github.com/w0rp/ale
 [3]: https://github.com/dhleong/vim-mantel
 [4]: https://github.com/borkdude/clj-kondo
+[5]: https://github.com/clojure-emacs/refactor-nrepl
