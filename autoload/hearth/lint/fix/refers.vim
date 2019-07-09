@@ -104,6 +104,21 @@ func! s:createForm(ns, mode, args)
     return form . ']'
 endfunc
 
+func! s:insertAs(line, alias)
+    if a:line =~# ' :as '
+        echom "There's already an alias for that namespace"
+        return
+    endif
+
+    let referIdx = stridx(a:line, ' :refer')
+    if referIdx != -1
+        return a:line[:referIdx] . ':as ' . a:alias . a:line[referIdx :]
+    endif
+
+    " presumably, the :refer is on the next line
+    return a:line . ' :as ' . a:alias
+endfunc
+
 func! s:insertRefer(line, symbol)
     let m = matchlist(a:line, ':refer \[\([^\]]*\)')
     let items = split(m[1], '\s\+')
@@ -111,12 +126,21 @@ func! s:insertRefer(line, symbol)
     return substitute(a:line, m[1], join(newItems, ' '), '')
 endfunc
 
+func! s:tryInsert(line, mode, args)
+    if a:mode ==# 'refer'
+        " insert a new refer for an existing ns
+        return s:insertRefer(a:line, a:args[0])
+
+    elseif a:mode ==# 'as'
+        " add :as to an existing :refer
+        return s:insertAs(a:line, a:args[0])
+    endif
+endfunc
+
 func! hearth#lint#fix#refers#Insert(lines, ns, mode, ...)
     " NOTE: this may be simpler to do from clojure...?
 
     let lines = a:lines
-
-    " TODO add refer to existing form? etc?
 
     let [nsStart, nsEnd, requireStart, requireEnd] = s:parseNsForm(lines)
     if requireStart < 0
@@ -129,11 +153,13 @@ func! hearth#lint#fix#refers#Insert(lines, ns, mode, ...)
     " pick an appropriate place to insert
     let insert = s:chooseInsert(lines, a:ns, requireStart, requireEnd)
     let index = insert.index
-    if insert.exists && a:mode ==# 'refer'
-        " insert a new refer for an existing ns
-        let lines[index] = s:insertRefer(lines[index], a:1)
-        return lines
-    elseif insert.exists
+    if insert.exists
+        let inserted = s:tryInsert(lines[index], a:mode, a:000)
+        if type(inserted) == v:t_string
+            let lines[index] = inserted
+            return lines
+        endif
+
         " already refer'd?
         return
     endif

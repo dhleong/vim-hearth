@@ -100,3 +100,33 @@ Expect clojure (Nested insert at end):
     (:require [serenity
                [cargo :as cargo]
                [util :as util]]))
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with existing refer):
+  (ns serenity.core
+    (:require [serenity.cargo :as sneaky]))
+
+Execute (Add different :as clause):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Don't create a duplicate alias):
+  (ns serenity.core
+    (:require [serenity.cargo :as sneaky]))
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with existing refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls]]))
+
+Execute (Add :as clause):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Insert :as clause):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo :refer [geisha-dolls]]))

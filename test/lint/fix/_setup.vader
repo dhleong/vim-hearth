@@ -8,6 +8,8 @@ Execute (Provide util fns):
       let results = hearth#lint#fix#refers#Insert(input, a:ns, a:mode, a:1)
     endif
 
-    norm ggdG
-    call setline(1, l:results)
+    if type(results) == v:t_list
+      norm ggdG
+      call setline(1, l:results)
+    endif
   endfunc
