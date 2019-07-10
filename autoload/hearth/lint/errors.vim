@@ -26,5 +26,12 @@ func! hearth#lint#errors#Expand(lint)
         return a:lint
     endif
 
+    let match = matchlist(a:lint.text, '^\(.\+\) already refers to')
+    if !empty(match)
+        let symbol = match[1]
+        let a:lint.nr = 'dup-refer:' . symbol
+        return a:lint
+    endif
+
     return a:lint
 endfunc
