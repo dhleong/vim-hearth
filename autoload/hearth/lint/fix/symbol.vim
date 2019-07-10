@@ -13,6 +13,9 @@ endfunc
 
 func! hearth#lint#fix#symbol#Fix(bufnr, lines, symbol)
     let candidates = s:findCandidateSymbols(a:symbol)
+    if type(candidates) != v:t_list
+        return
+    endif
 
     let namespaces = map(candidates, 'v:val.ns')
     return hearth#choose#OneOf(namespaces, { chosenNs ->
