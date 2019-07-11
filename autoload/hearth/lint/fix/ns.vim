@@ -45,20 +45,17 @@ func! s:findCandidateNs(bufnr, alias)
         return existing
     endif
 
-    let matches = hearth#util#apropos#Search(a:alias . '/')
-    if empty(matches)
-        echom 'No matches for ' . a:alias
-        return
-    endif
-
-    let expected = '\<' . a:alias . '$'
-    let candidates = filter(matches, 'v:val.ns =~# expected')
-
-    " find all *unique* namespace candidates
     let namespaces = {}
-    for c in candidates
-        let namespaces[c.ns] = 1
-    endfor
+    let matches = hearth#util#apropos#Search(a:alias . '/')
+    if !empty(matches)
+        let expected = '\<' . a:alias . '$'
+        let candidates = filter(matches, 'v:val.ns =~# expected')
+
+        " find all *unique* namespace candidates
+        for c in candidates
+            let namespaces[c.ns] = 1
+        endfor
+    endif
 
     if has_key(s:commonAliases, a:alias)
         let namespaces[s:commonAliases[a:alias]] = 1
@@ -71,6 +68,7 @@ func! hearth#lint#fix#ns#Fix(bufnr, lines, alias)
     let namespaces = s:findCandidateNs(a:bufnr, a:alias)
     if empty(namespaces)
         echom 'No matches for ' . a:alias
+        return
     endif
 
     return hearth#choose#OneOf(namespaces, { ns ->
