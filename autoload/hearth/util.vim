@@ -5,6 +5,9 @@ func! hearth#util#SessionExists()
         return fireplace#client().transport.alive()
     catch /Fireplace:.*REPL/
         return 0
+    catch /AssertionError/
+        " probably not piggiebacked
+        return 0
     endtry
 endfunc
 
