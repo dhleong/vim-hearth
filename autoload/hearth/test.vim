@@ -2,28 +2,18 @@
 func! s:RunCljsTests(ns)
     let ns = a:ns
     let testExpr = "(cljs.test/run-tests '" . ns . ')'
-    let expr = '(do ' .
-                \ "(cljs.core/require '" . ns . ' :reload)' .
-                \ testExpr . ')'
-    let resp = fireplace#client().eval(
-        \ expr,
-        \ {'ns': ns},
-        \ )
+    let expr = '(symbol'
+            \. '  (with-out-str '
+            \. "    (cljs.core/require '" . ns . ' :reload)'
+            \.      testExpr . '))'
+    let result = fireplace#eval(expr)
 
-    if has_key(resp, 'out')
-        if stridx(resp.out, 'FAIL') == -1 && stridx(resp.out, 'ERROR') == -1
-            " TODO can we put this into the qflist?
-            echo testExpr
-        else
-            echo resp.out
-        endif
-        return
+    if stridx(result, 'FAIL') == -1 && stridx(result, 'ERROR') == -1
+        echo testExpr
+    else
+        " TODO can we put this into the qflist?
+        echo result
     endif
-
-    " something terrible happened;
-    " upgrading cider/piggieback fixed this for me
-    echo 'Error: No `out` response'
-    echo resp
 endfunc
 
 func! hearth#test#RunForBuffer()
