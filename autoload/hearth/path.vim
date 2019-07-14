@@ -15,7 +15,15 @@ func! hearth#path#GuessRoot()
     if expand('%:t') ==# 'project.clj' || expand('%:t') ==# 'shadow-cljs.edn'
         return expand('%:p:h')
     endif
-    return fnamemodify(exists('b:java_root') ? b:java_root : fnamemodify(expand('%'), ':p:s?.*\zs[\/]\(src\|test\)[\/].*??'), ':~')
+    let root = fnamemodify(exists('b:java_root') ? b:java_root : fnamemodify(expand('%'), ':p:s?.*\zs[\/]\(src\|test\)[\/].*??'), ':~')
+
+    if root =~# '/src$'
+        " if you're in `/src/test`, the above will return `/src` instead of `/`.
+        " It'd be nice to fix the regex, but this is a simple kludge for now...
+        let root = root[:-4]
+    endif
+
+    return root
 endfunc
 
 func! hearth#path#GuessPort(...)
