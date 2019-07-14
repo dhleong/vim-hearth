@@ -76,6 +76,7 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
             \. '        ' . a:expr . ')))))'
 
     call setqflist([], ' ', {'title': a:expr})
+    echo 'Started: ' . a:expr
     let timer = timer_start(250, function('s:open_test_progress'))
     call fireplace#message({'op': 'eval', 'code': expr},
         \ function('s:ReportCljsTestResults', [get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr, timer]))
