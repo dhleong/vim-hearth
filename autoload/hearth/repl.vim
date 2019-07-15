@@ -7,16 +7,23 @@ func! hearth#repl#Connect(...)
     let l:port = a:0 ? a:1 : hearth#path#GuessPort()
     let l:root = hearth#path#GuessRoot()
 
-    exe 'Connect ' . l:port . ' ' . l:root
+    try
+        exe 'Connect ' . l:port . ' ' . l:root
 
-    if 'cljs' ==# expand('%:e')
-        " prepare piggieback
-        if hearth#path#DetectShadowJs()
-            " TODO pick build?
-            Piggieback :app
-        else
-            Piggieback (figwheel-sidecar.repl-api/repl-env)
+        if 'cljs' ==# expand('%:e')
+            " prepare piggieback
+            if hearth#path#DetectShadowJs()
+                " TODO pick build?
+                Piggieback :app
+            else
+                Piggieback (figwheel-sidecar.repl-api/repl-env)
+            endif
         endif
-    endif
+        return ''
+    catch /Fireplace:.*/
+        " echo the error (probably connection refused)
+        echohl ErrorMsg | echom v:exception . ' (connecting @' . l:port . ')' | echohl None
+    endtry
+
 endfunc
 
