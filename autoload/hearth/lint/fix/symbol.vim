@@ -17,8 +17,14 @@ func! hearth#lint#fix#symbol#Fix(bufnr, lines, symbol)
         return
     endif
 
+    " find *unique* namespaces
     let namespaces = map(candidates, 'v:val.ns')
-    return hearth#choose#OneOf(namespaces, { chosenNs ->
+    let unique = {}
+    for ns in namespaces
+        let unique[ns] = 1
+    endfor
+
+    return hearth#choose#OneOf(keys(unique), { chosenNs ->
             \ hearth#lint#fix#refers#Insert(
             \ a:lines,
             \ chosenNs, 'refer', a:symbol
