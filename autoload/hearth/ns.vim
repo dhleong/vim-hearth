@@ -31,8 +31,11 @@ func! hearth#ns#Undef(symbol)
     endif
 endfunc
 
-func! hearth#ns#TryRequire()
+func! hearth#ns#TryRequire(...)
     " :Require the current ns, but only if there's an active session
+
+    let bufnr = a:0 ? a:1 : bufnr('%')
+    let ext = expand('#' . bufnr . ':e')
 
     if !hearth#util#SessionExists()
         return
@@ -43,15 +46,14 @@ func! hearth#ns#TryRequire()
     endif
 
     try
-        let Callback = function('s:onFileLoaded', [bufnr('%')])
-        if expand('%:e') ==# 'cljs' && fireplace#op_available('load-file')
+        let Callback = function('s:onFileLoaded', [bufnr])
+        if ext ==# 'cljs' && fireplace#op_available('load-file')
             call fireplace#message({
                 \ 'op': 'load-file',
-                \ 'file-path': expand('%:p'),
+                \ 'file-path': expand('#' . bufnr . ':p'),
                 \ }, Callback)
         else
             " adapted from fireplace
-            let ext = expand('%:e')
             let ns = fireplace#ns()
             if ext ==# 'cljs'
                 let path = hearth#path#FromNs(ns, ext)

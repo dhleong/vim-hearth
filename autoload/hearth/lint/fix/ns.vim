@@ -73,5 +73,5 @@ func! hearth#lint#fix#ns#Fix(bufnr, lines, alias)
 
     return hearth#choose#OneOf(namespaces, { ns ->
             \ hearth#lint#fix#refers#Insert(a:lines, ns, 'as', a:alias)
-        \ }, hearth#ale#Defer())
+        \ }, hearth#ale#Defer().thenReload(a:bufnr))
 endfunc

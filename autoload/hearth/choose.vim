@@ -1,5 +1,5 @@
 func! s:resolveDeferred(d, Callback, value)
-    call a:d.resolve(a:Callback(a:value))
+    return a:d.resolve(a:Callback(a:value))
 endfunc
 
 func! hearth#choose#OneOf(items, OnChosen, ...)
@@ -24,7 +24,7 @@ func! hearth#choose#OneOf(items, OnChosen, ...)
     if len(a:items) == 1
         " single candidate? shortcut and apply immediately
         " (without the deferred!)
-        return a:OnChosen(a:items[0])
+        return Callback(a:items[0])
     endif
 
     " TODO non-FZF options? eg inputlist()
