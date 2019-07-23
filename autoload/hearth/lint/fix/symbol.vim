@@ -11,7 +11,7 @@ func! s:findCandidateSymbols(symbol)
     return matches
 endfunc
 
-func! hearth#lint#fix#symbol#Fix(bufnr, lines, symbol)
+func! hearth#lint#fix#symbol#Fix(bufnr, context, symbol)
     let candidates = s:findCandidateSymbols(a:symbol)
     if type(candidates) != v:t_list
         return
@@ -26,7 +26,7 @@ func! hearth#lint#fix#symbol#Fix(bufnr, lines, symbol)
 
     return hearth#choose#OneOf(keys(unique), { chosenNs ->
             \ hearth#lint#fix#refers#Insert(
-            \ a:lines,
+            \ a:context,
             \ chosenNs, 'refer', a:symbol
             \ )
         \ }, hearth#ale#Defer().thenReload(a:bufnr))

@@ -1,0 +1,37 @@
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with fn ref):
+  (ns serenity.core)
+  (ship/smuggle :geisha-dolls)
+
+Execute (Filter should find the right candidate):
+  let filtered = hearth#lint#fix#ns#FilterApropos({
+    \ 'line': getline(2),
+    \ }, [
+    \   { 'ns': 'firefly.ship', 'symbol': 'smuggle' },
+    \   { 'ns': 'alliance.ship', 'symbol': 'search' },
+    \ ],
+    \ 'ship'
+    \ )
+  AssertEqual ['firefly.ship'], map(filtered, 'v:val.ns')
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with partial fn ref):
+  (ns serenity.core)
+  (ship/sm :geisha-dolls)
+
+Execute (Filter should find the right candidate):
+  let filtered = hearth#lint#fix#ns#FilterApropos({
+    \ 'line': getline(2),
+    \ }, [
+    \   { 'ns': 'firefly.ship', 'symbol': 'smuggle' },
+    \   { 'ns': 'alliance.ship', 'symbol': 'search' },
+    \ ],
+    \ 'ship'
+    \ )
+  AssertEqual ['firefly.ship'], map(filtered, 'v:val.ns')

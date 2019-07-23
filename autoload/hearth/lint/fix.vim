@@ -18,5 +18,14 @@ func! hearth#lint#fix#Fix(bufnr, lines)
         return
     endif
 
-    return s:fixers[type](a:bufnr, a:lines, info)
+    " the index in context.lines of the lint is lnum - 1,
+    " since lnum is 1-indexed
+    let index = lints[0].lnum - 1
+    let context = {
+        \ 'lines': a:lines,
+        \ 'lint': lints[0],
+        \ 'line': a:lines[index],
+        \ 'lineIndex': index,
+        \ }
+    return s:fixers[type](a:bufnr, context, info)
 endfunc

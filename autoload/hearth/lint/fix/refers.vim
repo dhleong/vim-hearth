@@ -150,10 +150,10 @@ func! s:tryInsert(line, mode, args)
     endif
 endfunc
 
-func! hearth#lint#fix#refers#Insert(lines, ns, mode, ...)
+func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
     " NOTE: this may be simpler to do from clojure...?
 
-    let lines = a:lines
+    let lines = a:context.lines
 
     let [nsStart, nsEnd, requireStart, requireEnd] = s:parseNsForm(lines)
     if requireStart < 0

@@ -36,7 +36,7 @@ func! s:findKnownNsForAlias(bufnr, alias)
     return substitute(candidates[0], '/', '.', 'g')
 endfunc
 
-func! s:findCandidateNs(bufnr, alias)
+func! s:findCandidateNs(bufnr, context, alias)
     " attempt to find a definitive answer using refactor-nrepl, if available
     let existing = s:findKnownNsForAlias(a:bufnr, a:alias)
     if type(existing) == v:t_string
@@ -48,9 +48,7 @@ func! s:findCandidateNs(bufnr, alias)
     let namespaces = {}
     let matches = hearth#util#apropos#Search(a:alias . '/')
     if !empty(matches)
-        echom matches
-        let expected = '\%(\<\|.\)' . a:alias . '$'
-        let candidates = filter(matches, 'v:val.ns =~# expected')
+        let candidates = hearth#lint#fix#ns#FilterApropos(a:context, matches, a:alias)
 
         " find all *unique* namespace candidates
         for c in candidates
@@ -65,14 +63,31 @@ func! s:findCandidateNs(bufnr, alias)
     return keys(namespaces)
 endfunc
 
-func! hearth#lint#fix#ns#Fix(bufnr, lines, alias)
-    let namespaces = s:findCandidateNs(a:bufnr, a:alias)
+func! hearth#lint#fix#ns#FilterApropos(context, matches, alias)
+    let expected = '\%(\<\|.\)' . a:alias . '$'
+    let candidates = filter(a:matches, 'v:val.ns =~# expected')
+    if len(candidates) <= 1
+        return candidates
+    endif
+
+    " if they've started typing
+    let m = matchlist(a:context.line, a:alias . '/\([a-zA-Z-]\+\>\)')
+    if len(m) > 1
+        let expected = '^' . m[1]
+        let candidates = filter(candidates, 'v:val.symbol =~# expected')
+    endif
+
+    return candidates
+endfunc
+
+func! hearth#lint#fix#ns#Fix(bufnr, context, alias)
+    let namespaces = s:findCandidateNs(a:bufnr, a:context, a:alias)
     if empty(namespaces)
         echom 'No matches for ' . a:alias
         return
     endif
 
     return hearth#choose#OneOf(namespaces, { ns ->
-            \ hearth#lint#fix#refers#Insert(a:lines, ns, 'as', a:alias)
+            \ hearth#lint#fix#refers#Insert(a:context, ns, 'as', a:alias)
         \ }, hearth#ale#Defer().thenReload(a:bufnr))
 endfunc
