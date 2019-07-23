@@ -48,7 +48,8 @@ func! s:findCandidateNs(bufnr, alias)
     let namespaces = {}
     let matches = hearth#util#apropos#Search(a:alias . '/')
     if !empty(matches)
-        let expected = '\<' . a:alias . '$'
+        echom matches
+        let expected = '\%(\<\|.\)' . a:alias . '$'
         let candidates = filter(matches, 'v:val.ns =~# expected')
 
         " find all *unique* namespace candidates
