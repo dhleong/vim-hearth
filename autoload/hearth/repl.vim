@@ -13,8 +13,7 @@ func! hearth#repl#Connect(...)
         if 'cljs' ==# expand('%:e')
             " prepare piggieback
             if hearth#path#DetectShadowJs()
-                " TODO pick build?
-                Piggieback :app
+                call hearth#shadow#SelectBuild(l:port)
             else
                 Piggieback (figwheel-sidecar.repl-api/repl-env)
             endif
