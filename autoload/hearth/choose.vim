@@ -2,6 +2,44 @@ func! s:resolveDeferred(d, Callback, value)
     return a:d.resolve(a:Callback(a:value))
 endfunc
 
+func! s:promptViaFzf(items, Callback) "{{{
+    call fzf#run({
+        \ 'source': a:items,
+        \ 'sink': a:Callback,
+        \ 'down': '20%',
+        \ })
+endfunc "}}}
+
+func! s:promptViaInputList(items, Callback) " {{{
+    let items = a:items
+    let maxOptions = &lines - 4
+    if len(items) >= maxOptions
+        let items = items[:maxOptions]
+    endif
+
+    let selections = ['Choose one:'] +
+        \ map(items, '(v:key + 1) . ". " . v:val')
+    let index = inputlist(selections)
+    if index <= 0
+        " cancelled
+        return -1
+    endif
+
+    return a:Callback(a:items[index - 1])
+endfunc " }}}
+
+func! s:prompt(items, Callback) "{{{
+    " prefer FZF if available
+    try
+        return s:promptViaFzf(a:items, a:Callback)
+    catch /E117/
+        " fzf unavailable
+    endtry
+
+    " fallback to inputlist()
+    return s:promptViaInputList(a:items, a:Callback)
+endfunc "}}}
+
 func! hearth#choose#OneOf(items, OnChosen, ...)
     " Given a list of string items, prompt the to user choose one of them,
     " calling OnChosen with the selection.
@@ -27,12 +65,14 @@ func! hearth#choose#OneOf(items, OnChosen, ...)
         return Callback(a:items[0])
     endif
 
-    " TODO non-FZF options? eg inputlist()
-    call fzf#run({
-        \ 'source': a:items,
-        \ 'sink': Callback,
-        \ 'down': '20%',
-        \ })
+    let result = s:prompt(a:items, Callback)
+    if type(result) == v:t_number && result == -1
+        " cancelled
+        return
+    elseif type(result) != v:t_number || result != 0
+        " result selected inline
+        return result
+    endif
 
     if a:0 && hearth#ale#IsDeferred(a:1)
         " return the deferred
