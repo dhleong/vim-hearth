@@ -1,6 +1,6 @@
-func! s:onFileLoaded(bufnr, resp) abort
+func! s:onFileLoaded(bufnr, state, resp) abort
     " check for lint
-    call hearth#lint#CheckResponse(a:bufnr, a:resp)
+    call hearth#lint#CheckResponse(a:bufnr, a:state, a:resp)
 
     if bufnr('%') == a:bufnr
         " if we have mantel, kick off a highlight proc after the
@@ -29,6 +29,10 @@ func! hearth#ns#Undef(symbol)
     endif
 endfunc
 
+let s:initialState = {
+    \ 'hasError': 0
+    \ }
+
 func! hearth#ns#TryRequire(...)
     " :Require the current ns, but only if there's an active session
 
@@ -44,7 +48,8 @@ func! hearth#ns#TryRequire(...)
     endif
 
     try
-        let Callback = function('s:onFileLoaded', [bufnr])
+        let state = deepcopy(s:initialState)
+        let Callback = function('s:onFileLoaded', [bufnr, state])
         if ext ==# 'cljs' && fireplace#op_available('load-file')
             call fireplace#message({
                 \ 'op': 'load-file',

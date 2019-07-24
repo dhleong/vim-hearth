@@ -48,16 +48,23 @@ func! s:errToLint(err)
     return hearth#lint#errors#Expand(lint)
 endfunc
 
-func! s:isCleanResponse(resp)
-    if has_key(a:resp, 'err') || has_key(a:resp, 'ex')
+func! s:isCleanResponse(state, resp)
+    if has_key(a:resp, 'err') || has_key(a:resp, 'ex') || a:state.hasError
+        let a:state.hasError = 1
         return 0
     endif
-    return !has_key(a:resp, 'status') || a:resp.status[0] !=# 'done'
+
+    if !has_key(a:resp, 'status')
+        return 0
+    endif
+
+    let status = a:resp.status[0]
+    return status ==# 'done' && !a:state.hasError
 endfunc
 
-func! hearth#lint#CheckResponse(bufnr, resp)
+func! hearth#lint#CheckResponse(bufnr, state, resp)
     " Check the response of a reload (via ns#TryRequire) for lint
-    if s:isCleanResponse(a:resp)
+    if s:isCleanResponse(a:state, a:resp)
         " all good!
         call hearth#lint#Notify(a:bufnr, [])
         return
