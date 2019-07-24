@@ -31,7 +31,7 @@ func! hearth#choose#OneOf(items, OnChosen, ...)
     call fzf#run({
         \ 'source': a:items,
         \ 'sink': Callback,
-        \ 'down': '10%',
+        \ 'down': '20%',
         \ })
 
     if a:0 && hearth#ale#IsDeferred(a:1)
