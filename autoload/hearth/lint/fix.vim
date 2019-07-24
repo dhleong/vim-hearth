@@ -7,7 +7,7 @@ let s:fixers = {
 
 func! hearth#lint#fix#Fix(bufnr, lines)
     let lints = ale#engine#GetLoclist(a:bufnr)
-    let lints = filter(lints, 'v:val.linter_name ==# "hearth"')
+    let lints = filter(copy(lints), 'v:val.linter_name ==# "hearth"')
 
     if !len(lints) || !has_key(lints[0], 'nr') || lints[0].nr == -1
         return
@@ -22,6 +22,7 @@ func! hearth#lint#fix#Fix(bufnr, lines)
     " since lnum is 1-indexed
     let index = lints[0].lnum - 1
     let context = {
+        \ 'bufnr': a:bufnr,
         \ 'lines': a:lines,
         \ 'lint': lints[0],
         \ 'line': a:lines[index],

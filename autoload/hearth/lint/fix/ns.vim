@@ -89,5 +89,5 @@ func! hearth#lint#fix#ns#Fix(bufnr, context, alias)
 
     return hearth#choose#OneOf(namespaces, { ns ->
             \ hearth#lint#fix#refers#Insert(a:context, ns, 'as', a:alias)
-        \ }, hearth#ale#Defer().thenReload(a:bufnr))
+        \ }, hearth#ale#Defer().thenCleanup(a:context))
 endfunc

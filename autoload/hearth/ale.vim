@@ -1,8 +1,12 @@
 " ALE interop
 
-func! s:try_reload(bufnr)
-    if a:bufnr == bufnr('%')
-        write
+func! s:cleanupLintContext(context)
+    let bufnr = a:context.bufnr
+    let resolved = a:context.lint
+    let oldLints = ale#engine#GetLoclist(bufnr)
+    let newLints = filter(copy(oldLints), 'v:val != resolved')
+    if len(newLints) < len(oldLints)
+        call hearth#lint#Notify(bufnr, newLints)
     endif
 endfunc
 
@@ -13,17 +17,15 @@ func! s:deferred_resolve(...) dict
         call self.result_callback(result)
     endif
 
-    if self._reload_after_resolve == bufnr('%') && hearth#pref#Get('post_fix_autowrite', 1)
-        " NOTE: we can't just `write` here because the changes might not be
-        " applied immediately. This is a bit of a hack
-        call timer_start(250, { -> s:try_reload(self._reload_after_resolve) })
+    if has_key(self, '_dirtyContext')
+        call s:cleanupLintContext(self._dirtyContext)
     endif
 
     return result
 endfunc
 
-func! s:then_reload(bufnr) dict
-    let self._reload_after_resolve = a:bufnr
+func! s:deferred_thenCleanup(context) dict
+    let self._dirtyContext = a:context
     return self
 endfunc
 
@@ -41,7 +43,6 @@ endfunc
 
 let s:deferred = {
         \ '_deferred_job_id': -42,
-        \ '_reload_after_resolve': 0,
         \ 'resolve': function('s:deferred_resolve'),
-        \ 'thenReload': function('s:then_reload'),
+        \ 'thenCleanup': function('s:deferred_thenCleanup'),
         \ }

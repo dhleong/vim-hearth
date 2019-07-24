@@ -20,7 +20,8 @@ func! s:errToLint(err)
     return hearth#lint#errors#Expand(base)
 endfunc
 
-func! s:notifyLint(bufnr, lints)
+func! hearth#lint#Notify(bufnr, lints)
+    " Notify linters of our current lints
     try
         call ale#other_source#ShowResults(a:bufnr, 'hearth', a:lints)
     catch /E117/
@@ -39,7 +40,7 @@ func! hearth#lint#CheckResponse(bufnr, resp)
     " Check the response of a reload (via ns#TryRequire) for lint
     if s:isCleanResponse(a:resp)
         " all good!
-        call s:notifyLint(a:bufnr, [])
+        call hearth#lint#Notify(a:bufnr, [])
         return
     endif
 
@@ -51,8 +52,8 @@ func! hearth#lint#CheckResponse(bufnr, resp)
     let err = s:errToLint(a:resp.err)
     if empty(err)
         " no errors, I guess
-        call s:notifyLint(a:bufnr, [])
+        call hearth#lint#notifyLint(a:bufnr, [])
     else
-        call s:notifyLint(a:bufnr, [err])
+        call hearth#lint#notifyLint(a:bufnr, [err])
     endif
 endfunc

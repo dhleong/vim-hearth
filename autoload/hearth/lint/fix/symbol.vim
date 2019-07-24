@@ -29,5 +29,5 @@ func! hearth#lint#fix#symbol#Fix(bufnr, context, symbol)
             \ a:context,
             \ chosenNs, 'refer', a:symbol
             \ )
-        \ }, hearth#ale#Defer().thenReload(a:bufnr))
+        \ }, hearth#ale#Defer().thenCleanup(a:context))
 endfunc
