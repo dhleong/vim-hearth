@@ -23,7 +23,7 @@ func! hearth#ns#Undef(symbol)
     let resp = fireplace#message({
         \ 'op': 'undef',
         \ 'symbol': a:symbol,
-        \ })
+        \ }, v:t_list)
     if empty(resp) || has_key(resp[0], 'err')
         echom resp[0].err
     endif

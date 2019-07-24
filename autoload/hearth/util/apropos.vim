@@ -18,7 +18,7 @@ func! hearth#util#apropos#Search(query)
     let resp = fireplace#message({
         \ 'op': 'apropos',
         \ 'query': a:query
-        \ })
+        \ }, v:t_list)
 
     if !has_key(resp[0], 'apropos-matches')
         return []

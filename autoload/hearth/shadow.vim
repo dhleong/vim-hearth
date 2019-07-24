@@ -10,15 +10,24 @@ let s:extractBuildsClj = ''
     \. '     symbol)'
 
 func! s:extractBuilds()
+    " NOTE: since this (typically) gets called *before* we've set up the
+    " Piggieback layer, we can't use fireplace#message directly, since
+    " fireplace#client throws when used from cljs files without Piggieback.
+    " It's simple enough to use platform() directly for this special case
     let resp = fireplace#platform().message({
         \ 'op': 'eval',
         \ 'code': s:extractBuildsClj,
-        \ })
-    if empty(resp) || !has_key(resp[0], 'value')
+        \ 'session': 0,
+        \ }, v:t_dict)
+    if empty(resp) || !has_key(resp, 'value')
         return []
     endif
 
-    return eval(resp[0].value)
+    let builds = []
+    for rawList in resp.value
+        let builds += eval(rawList)
+    endfor
+    return builds
 endfunc
 
 func! s:activateBuild(port, id)

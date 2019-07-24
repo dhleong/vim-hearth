@@ -13,7 +13,7 @@ func! s:findKnownNsForAlias(bufnr, alias)
     let resp = fireplace#message({
         \ 'op': 'namespace-aliases',
         \ 'serialization-format': 'bencode',
-        \ })
+        \ }, v:t_list)
     if empty(resp) || !has_key(resp[0], 'namespace-aliases')
         return
     endif
