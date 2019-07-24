@@ -20,15 +20,6 @@ func! s:errToLint(err)
     return hearth#lint#errors#Expand(base)
 endfunc
 
-func! hearth#lint#Notify(bufnr, lints)
-    " Notify linters of our current lints
-    try
-        call ale#other_source#ShowResults(a:bufnr, 'hearth', a:lints)
-    catch /E117/
-        " no ale
-    endtry
-endfunc
-
 func! s:isCleanResponse(resp)
     if has_key(a:resp, 'err') || has_key(a:resp, 'ex')
         return 0
@@ -52,8 +43,18 @@ func! hearth#lint#CheckResponse(bufnr, resp)
     let err = s:errToLint(a:resp.err)
     if empty(err)
         " no errors, I guess
-        call hearth#lint#notifyLint(a:bufnr, [])
+        call hearth#lint#Notify(a:bufnr, [])
     else
-        call hearth#lint#notifyLint(a:bufnr, [err])
+        call hearth#lint#Notify(a:bufnr, [err])
     endif
 endfunc
+
+func! hearth#lint#Notify(bufnr, lints)
+    " Notify linters of our current lints
+    try
+        call ale#other_source#ShowResults(a:bufnr, 'hearth', a:lints)
+    catch /E117/
+        " no ale
+    endtry
+endfunc
+

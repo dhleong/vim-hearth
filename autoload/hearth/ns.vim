@@ -1,6 +1,4 @@
 func! s:onFileLoaded(bufnr, resp) abort
-    " file has been loaded
-
     " check for lint
     call hearth#lint#CheckResponse(a:bufnr, a:resp)
 
