@@ -1,5 +1,4 @@
-
-func! s:errToLint(err)
+func! s:cljErrToLint(err) " {{{
     let m = matchlist(a:err, '(\([a-zA-Z0-9_.\/]*\):\(\d*\):\(\d*\))')
     if empty(m)
         return {}
@@ -10,14 +9,43 @@ func! s:errToLint(err)
     let [ _, file, line, col; _ ] = m
     let message = lines[len(lines) - 1]
 
-    let base = {
+    return {
         \   'text': message,
         \   'lnum': line,
         \   'col': col,
         \   'type': 'E',
         \ }
+endfunc " }}}
 
-    return hearth#lint#errors#Expand(base)
+func! s:figwheelErrToLint(err) "{{{
+    let m = matchlist(a:err, 'WARNING: \(.*\) at line \(\d\+\)')
+    if empty(m)
+        return {}
+    endif
+
+    let [ _, message, line; _ ] = m
+    return {
+        \   'text': message,
+        \   'lnum': line,
+        \   'col': 1,
+        \   'type': 'E',
+        \ }
+endfunc "}}}
+
+func! s:errToLint(err)
+    let lint = s:cljErrToLint(a:err)
+
+    if empty(lint)
+        " couldn't parse as a clj error; maybe figwheel?
+        let lint = s:figwheelErrToLint(a:err)
+    endif
+
+    if empty(lint)
+        " if it's still empty, there's nothing more we can do
+        return lint
+    endif
+
+    return hearth#lint#errors#Expand(lint)
 endfunc
 
 func! s:isCleanResponse(resp)
