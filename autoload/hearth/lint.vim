@@ -32,12 +32,43 @@ func! s:figwheelErrToLint(err) "{{{
         \ }
 endfunc "}}}
 
+func! s:shadowErrToLint(err) " {{{
+    let m = matchlist(a:err, '-- \(\(E\)RROR\|\(W\)ARNING\) ')
+    if empty(m)
+        return {}
+    endif
+
+    let type = m[2]
+    let lines = split(a:err, '\n')
+    for line in lines
+        let m = matchlist(line, '^\(.\+\) at line \(\d\+\)')
+        if empty(m)
+            continue
+        endif
+
+        let [ _, message, line; _ ] = m
+        return {
+            \   'text': message,
+            \   'lnum': line,
+            \   'col': 1,
+            \   'type': type,
+            \ }
+    endfor
+
+    return {}
+endfunc " }}}
+
 func! s:errToLint(err)
     let lint = s:cljErrToLint(a:err)
 
     if empty(lint)
         " couldn't parse as a clj error; maybe figwheel?
         let lint = s:figwheelErrToLint(a:err)
+    endif
+
+    if empty(lint)
+        " maybe shadow-cljs?
+        let lint = s:shadowErrToLint(a:err)
     endif
 
     if empty(lint)

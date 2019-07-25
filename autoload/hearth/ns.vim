@@ -1,3 +1,10 @@
+func! s:canUseLoadFileOp() abort
+    " NOTE: load-file op is usually cleaner when available, but doesn't
+    " currently produce output for shadow-cljs
+    return fireplace#op_available('load-file')
+        \ && !hearth#path#DetectShadowJs()
+endfunc
+
 func! s:onFileLoaded(bufnr, state, resp) abort
     " check for lint
     call hearth#lint#CheckResponse(a:bufnr, a:state, a:resp)
@@ -50,7 +57,7 @@ func! hearth#ns#TryRequire(...)
     try
         let state = deepcopy(s:initialState)
         let Callback = function('s:onFileLoaded', [bufnr, state])
-        if ext ==# 'cljs' && fireplace#op_available('load-file')
+        if ext ==# 'cljs' && s:canUseLoadFileOp()
             call fireplace#message({
                 \ 'op': 'load-file',
                 \ 'file-path': expand('#' . bufnr . ':p'),
@@ -59,7 +66,9 @@ func! hearth#ns#TryRequire(...)
             " adapted from fireplace
             let ns = fireplace#ns()
             if ext ==# 'cljs'
-                let path = hearth#path#FromNs(ns, ext)
+                " NOTE: just getting the buffer's full path seems to be
+                " more reliable for shadow-cljs
+                let path = expand('#' . bufnr . ':p')
                 let code = '(load-file ' . hearth#util#Stringify(path) . ')'
             else
                 let sym = hearth#util#Symbolify(ns)
