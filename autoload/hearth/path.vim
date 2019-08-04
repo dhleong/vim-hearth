@@ -30,9 +30,15 @@ func! hearth#path#GuessPort(...)
     let default = a:0 ? a:1 : 7888
 
     let l:root = hearth#path#GuessRoot()
-    let l:path = l:root . '/.nrepl-port'
-    if filereadable(expand(l:path))
-        return system('cat ' . l:path)
+    let l:path = expand(l:root . '/.nrepl-port')
+    if filereadable(l:path)
+        return readfile(l:path)[0]
+    endif
+
+    " shadow-cljs?
+    let l:path = expand(l:root . '/.shadow-cljs/nrepl.port')
+    if filereadable(l:path)
+        return readfile(l:path)[0]
     endif
 
     if expand('%:e') ==# 'cljs'
