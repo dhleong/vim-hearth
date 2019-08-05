@@ -13,7 +13,10 @@ func! s:ReportCljsTestResults(id, path, expr, timer, message)
                 let resource = ''
                 let entry.lnum = 0
             endif
-            let entry.filename = fireplace#findresource(resource, a:path)
+            let entry.filename = resource
+            if !filereadable(entry.filename)
+                let entry.filename = fireplace#findresource(resource, a:path)
+            endif
             if empty(entry.filename)
                 let entry.lnum = 0
             endif
