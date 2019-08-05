@@ -1,4 +1,4 @@
-func! s:ReportCljsTestResults(id, path, expr, timer, message)
+func! s:ReportCljsTestResults(id, path, expr, message)
     let str = get(a:message, 'value', '')
     let lines = split(str, "\r\\=\n", 1)
     let entries = []
@@ -33,7 +33,6 @@ func! s:ReportCljsTestResults(id, path, expr, timer, message)
     endif
 
     if has_key(a:message, 'status')
-        call timer_stop(a:timer)
         let list = a:id ? getqflist({'id': a:id, 'items': 1}).items : getqflist()
         if empty(filter(list, 'v:val.valid'))
             cwindow
@@ -80,19 +79,9 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
 
     call setqflist([], ' ', {'title': a:expr})
     echo 'Started: ' . a:expr
-    let timer = timer_start(250, function('s:open_test_progress'))
     call fireplace#message({'op': 'eval', 'code': expr},
-        \ function('s:ReportCljsTestResults', [get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr, timer]))
+        \ function('s:ReportCljsTestResults', [get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr]))
 endfunc
-
-function! s:open_test_progress(timer) abort
-  " if this function was called, the test is still running; open quickfix
-  let was_qf = &buftype ==# 'quickfix'
-  botright copen
-  if &buftype ==# 'quickfix' && !was_qf
-      wincmd p
-  endif
-endfunction
 
 func! hearth#test#cljs#Run(ns)
     let ns = a:ns
