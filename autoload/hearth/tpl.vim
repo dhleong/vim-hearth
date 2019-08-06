@@ -53,6 +53,9 @@ func! hearth#tpl#Fill()
     let ns = ''
     if hearth#util#SessionExists()
         let ns = fireplace#ns()
+        if ns ==# 'user'
+            let ns = ''
+        endif
     else
         " TODO
     endif
