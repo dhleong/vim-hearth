@@ -1,20 +1,20 @@
 
 let s:extractBuildsClj = ''
-    \. '(->> (clojure.core/slurp "shadow-cljs.edn")'
+    \. '(->> (slurp "shadow-cljs.edn")'
     \. '     (clojure.edn/read-string)'
     \. '     :builds'
-    \. '     clojure.core/keys'
-    \. '     (clojure.core/map #(str "\"" % "\""))'
+    \. '     keys'
+    \. '     (map #(str "\"" % "\""))'
     \. '     (clojure.string/join ",")'
     \. '     (#(str "[" % "]"))'
     \. '     symbol)'
 
 func! s:extractBuilds()
-    " NOTE: since this (typically) gets called *before* we've set up the
-    " Piggieback layer, we can't use fireplace#message directly, since
-    " fireplace#client throws when used from cljs files without Piggieback.
-    " It's simple enough to use platform() directly for this special case
-    let resp = fireplace#platform().message({
+    " NOTE: make sure we talk to clj; if we just use platform()
+    " fireplace will want to use the cljs repl, but we haven't
+    " connected yet, and we need the system-level clojure context
+    " to be able to read the edn file anyway
+    let resp = fireplace#clj().Message({
         \ 'op': 'eval',
         \ 'code': s:extractBuildsClj,
         \ 'session': 0,
