@@ -3,6 +3,7 @@ let s:fixers = {
     \ 'dup-refer': function('hearth#lint#fix#dup_refer#Fix'),
     \ 'ns': function('hearth#lint#fix#ns#Fix'),
     \ 'symbol': function('hearth#lint#fix#symbol#Fix'),
+    \ 'var': function('hearth#lint#fix#var#Fix'),
     \ }
 
 func! hearth#lint#fix#Fix(bufnr, lines)

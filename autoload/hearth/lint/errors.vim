@@ -13,6 +13,16 @@ func! hearth#lint#errors#Expand(lint)
         return a:lint
     endif
 
+    let match = matchlist(a:lint.text, '^Use of undeclared Var \(.*\)')
+    if !empty(match)
+        let symbol = match[1]
+        if a:lint.col > 1
+            let a:lint.end_col = a:lint.col + len(symbol)
+        endif
+        let a:lint.nr = 'var:' . symbol
+        return a:lint
+    endif
+
     let match = matchlist(a:lint.text, '^No such namespace: \(.*\)')
     if !empty(match)
         let ns = match[1]

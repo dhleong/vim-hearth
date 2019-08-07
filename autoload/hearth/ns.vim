@@ -75,7 +75,7 @@ func! hearth#ns#TryRequire(...)
                 let code = '(clojure.core/require ' . sym . ' :reload)'
             endif
 
-            call fireplace#message({
+            call fireplace#platform().Message({
                 \ 'op': 'eval',
                 \ 'code': code,
                 \ }, Callback)
