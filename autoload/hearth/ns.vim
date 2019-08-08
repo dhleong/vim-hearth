@@ -5,14 +5,18 @@ func! s:canUseLoadFileOp() abort
         \ && !hearth#path#DetectShadowJs()
 endfunc
 
+func! s:isDone(resp)
+    return has_key(a:resp, 'status') && a:resp.status[0] ==# 'done'
+endfunc
+
 func! s:onFileLoaded(bufnr, state, resp) abort
     " check for lint
     call hearth#lint#CheckResponse(a:bufnr, a:state, a:resp)
 
-    if bufnr('%') == a:bufnr
-        " if we have mantel, kick off a highlight proc after the
+    if bufnr('%') == a:bufnr && s:isDone(a:resp)
+        " if we have mantel, kick off a highlight proc after the load finishes
         try
-            call mantel#Highlight()
+            call mantel#TryHighlight()
         catch /E117/
             " not installed; ignore
         endtry
@@ -58,7 +62,7 @@ func! hearth#ns#TryRequire(...)
         let state = deepcopy(s:initialState)
         let Callback = function('s:onFileLoaded', [bufnr, state])
         if ext ==# 'cljs' && s:canUseLoadFileOp()
-            call fireplace#message({
+            call fireplace#cljs().Message({
                 \ 'op': 'load-file',
                 \ 'file-path': expand('#' . bufnr . ':p'),
                 \ }, Callback)
