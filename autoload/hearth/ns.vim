@@ -41,7 +41,8 @@ func! hearth#ns#Undef(symbol)
 endfunc
 
 let s:initialState = {
-    \ 'hasError': 0
+    \ 'hasError': 0,
+    \ 'lints': [],
     \ }
 
 func! hearth#ns#TryRequire(...)

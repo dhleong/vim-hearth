@@ -33,29 +33,43 @@ func! s:figwheelErrToLint(err) "{{{
 endfunc "}}}
 
 func! s:shadowErrToLint(err) " {{{
-    let m = matchlist(a:err, '-- \(\(E\)RROR\|\(W\)ARNING\) ')
+    let m = matchlist(a:err, '-- \(ERROR\|WARNING\) ')
     if empty(m)
         return {}
     endif
 
-    let type = m[2]
+    let type = m[1][0]  " IE the E or the W
     let lines = split(a:err, '\n')
+    let linenr = -1
+    let col = 1
+    let message = []
     for line in lines
-        let m = matchlist(line, '^\(.\+\) at line \(\d\+\)')
-        if empty(m)
+        if linenr < 0
+            let m = matchlist(line, '^[ ]*File: \([^:]\+\):\(\d\+\):\(\d\+\)')
+            if empty(m)
+                continue
+            endif
+
+            let linenr = str2nr(m[2])
+            let col = m[3]
             continue
         endif
 
-        let [ _, message, line; _ ] = m
-        return {
-            \   'text': message,
-            \   'lnum': line,
-            \   'col': 1,
-            \   'type': type,
-            \ }
+        if line !~# '^---'
+            let message = add(message, trim(line))
+        endif
     endfor
 
-    return {}
+    if linenr < 0
+        return {}
+    endif
+
+    return {
+        \   'text': join(message, '\n'),
+        \   'lnum': linenr,
+        \   'col': col,
+        \   'type': type,
+        \ }
 endfunc " }}}
 
 func! s:errToLint(err)
@@ -106,13 +120,11 @@ func! hearth#lint#CheckResponse(bufnr, state, resp)
         return
     endif
 
-    let err = s:errToLint(a:resp.err)
-    if empty(err)
-        " no errors, I guess
-        call hearth#lint#Notify(a:bufnr, [])
-    else
-        call hearth#lint#Notify(a:bufnr, [err])
+    let lint = s:errToLint(a:resp.err)
+    if !empty(lint)
+        let a:state.lints = add(a:state.lints, lint)
     endif
+    call hearth#lint#Notify(a:bufnr, a:state.lints)
 endfunc
 
 func! hearth#lint#Notify(bufnr, lints)
