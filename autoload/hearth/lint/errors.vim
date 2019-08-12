@@ -23,7 +23,7 @@ func! hearth#lint#errors#Expand(lint)
         return a:lint
     endif
 
-    let match = matchlist(a:lint.text, '^No such namespace: \(.*\)')
+    let match = matchlist(a:lint.text, '^No such namespace: \([^ ,]*\)')
     if !empty(match)
         let ns = match[1]
         let a:lint.end_col = a:lint.col + len(ns)
