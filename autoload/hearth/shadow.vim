@@ -9,6 +9,11 @@ let s:extractBuildsClj = ''
     \. '     (#(str "[" % "]"))'
     \. '     symbol)'
 
+func! s:isIgnoredBuildId(id)
+    let ignored = hearth#pref#Get('ignored_build_ids', [])
+    return index(ignored, a:id) != -1
+endfunc
+
 func! s:extractBuilds()
     " NOTE: make sure we talk to clj; if we just use platform()
     " fireplace will want to use the cljs repl, but we haven't
@@ -27,7 +32,7 @@ func! s:extractBuilds()
     for rawList in resp.value
         let builds += eval(rawList)
     endfor
-    return builds
+    return filter(builds, '!s:isIgnoredBuildId(v:val)')
 endfunc
 
 func! s:activateBuild(port, id)
