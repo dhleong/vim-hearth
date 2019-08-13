@@ -1,10 +1,33 @@
 " ALE interop
 
-func! s:cleanupLintContext(context)
+func! s:areNrsRelated(thisKind, thisArg, otherKind, otherArg) abort
+    if a:thisKind ==# 'ns' && a:otherKind =~# 'var\|symbol'
+        " a missing var/symbol is related to a missing ns IFF
+        " the symbol starts with that ns
+        return stridx(a:otherArg, a:thisArg) == 0
+    endif
+endfunc
+
+func! s:isRelatedTo(context, val) abort
+    if a:context == a:val
+        return 1
+    endif
+
+    if a:context.lnum != v:val.lnum
+        return 0
+    endif
+
+    let [thisKind, thisArg] = split(a:context.nr, ':')
+    let [otherKind, otherArg] = split(a:val.nr, ':')
+    return s:areNrsRelated(thisKind, thisArg, otherKind, otherArg)
+        \|| s:areNrsRelated(otherKind, otherArg, thisArg, thisKind)
+endfunc
+
+func! s:cleanupLintContext(context) abort
     let bufnr = a:context.bufnr
     let resolved = a:context.lint
     let oldLints = ale#engine#GetLoclist(bufnr)
-    let newLints = filter(copy(oldLints), 'v:val != resolved')
+    let newLints = filter(copy(oldLints), '!s:isRelatedTo(resolved, v:val)')
     if len(newLints) < len(oldLints)
         call hearth#lint#Notify(bufnr, newLints)
     endif

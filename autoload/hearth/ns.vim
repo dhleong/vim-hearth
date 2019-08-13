@@ -1,8 +1,5 @@
 func! s:canUseLoadFileOp() abort
-    " NOTE: load-file op is usually cleaner when available, but doesn't
-    " currently produce output for shadow-cljs
     return fireplace#op_available('load-file')
-        \ && !hearth#path#DetectShadowJs()
 endfunc
 
 func! s:isDone(resp)
