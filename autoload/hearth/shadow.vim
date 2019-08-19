@@ -36,7 +36,13 @@ func! s:extractBuilds()
 endfunc
 
 func! s:activateBuild(port, id)
-    exe 'Piggieback ' . a:id
+    let request = '(cider.piggieback/cljs-repl ' . a:id . ')'
+    let result = fireplace#clj().Query(request)
+    if len(result) && result[0] ==# 'no-worker'
+        " TODO prompt to start?
+        echo "No worker started for build: " . result[1]
+        return
+    endif
 
     " redraw first to clear fireplace's repl and avoid 'press enter' prompt
     redraw
