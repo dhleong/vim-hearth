@@ -44,6 +44,10 @@ func! s:activateBuild(port, id)
         return
     endif
 
+    " the piggieback call seems to still be needed for fireplace to know that
+    " the cljs repl is ready
+    exe 'Piggieback ' . a:id
+
     " redraw first to clear fireplace's repl and avoid 'press enter' prompt
     redraw
     echo 'Connected to shadow-cljs' . a:id . ' on port ' . a:port
