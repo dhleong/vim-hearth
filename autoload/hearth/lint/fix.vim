@@ -28,6 +28,7 @@ func! hearth#lint#fix#Fix(bufnr, lines)
         \ 'lint': lints[0],
         \ 'line': a:lines[index],
         \ 'lineIndex': index,
+        \ 'ns': fireplace#ns(),
         \ }
     return s:fixers[type](a:bufnr, context, info)
 endfunc
