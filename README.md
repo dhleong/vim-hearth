@@ -20,6 +20,7 @@ Optional (encouraged) dependencies:
 - [vim-mantel][3]: for async semantic highlighting
 - [fzf][4]: for choosing between candidates for auto-import
 - [refactor-nrepl][5]: can improve auto import
+- [cider-nrepl][9]: is considered required for fireplace anyway
 
 Features:
 
@@ -73,3 +74,4 @@ the repl port, etc. using a handful of different strategies to support
 [6]: https://github.com/junegunn/vim-plug
 [7]: https://github.com/bhauman/lein-figwheel
 [8]: https://github.com/thheller/shadow-cljs
+[9]: https://github.com/clojure-emacs/cider-nrepl
