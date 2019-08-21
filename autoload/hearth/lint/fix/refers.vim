@@ -5,7 +5,7 @@ func! s:countInLine(line, toCount) " {{{
         return 0
     endif
 
-    if has('patch-0.8.0794')
+    if has('patch-8.0.0794')
         " NOTE: patch794 introduces support for counting within a string.
         " it has a hang bug with empty lines until patch 1410, hence the
         " explicit check above
