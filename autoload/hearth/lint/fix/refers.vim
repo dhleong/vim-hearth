@@ -75,7 +75,7 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
 
     for i in range(a:start, a:end)
         let line = a:lines[i]
-        let depth += count(line, '[') - count(line, ']')
+        let depth += s:countInLine(line, '[') - s:countInLine(line, ']')
 
         let m = matchlist(line, '\[\([a-zA-Z0-9_.-]*\)\>')
         if empty(m)
