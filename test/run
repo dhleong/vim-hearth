@@ -26,7 +26,6 @@ fi
 vim $FLAGS <(cat << VIMRC
 set rtp+=$VADER_PATH
 set rtp+=.
-VIMRC
-) -c 'Vader! test/**' > /dev/null
+VIMRC) -c 'Vader! test/**' > /dev/null
 
 
