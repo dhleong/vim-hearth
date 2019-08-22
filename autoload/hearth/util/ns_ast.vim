@@ -258,7 +258,7 @@ endfunc " }}}
 
 " }}}
 
-func! s:parse(tok)
+func! s:parse(tok) " {{{
     let col = a:tok.Col()
     let [kind, next] = a:tok.Peek()
     if kind ==# '('
@@ -270,7 +270,7 @@ func! s:parse(tok)
     endif
     let result.col = col
     return result
-endfunc
+endfunc " }}}
 
 func! hearth#util#ns_ast#Build(lines)
     let tok = hearth#util#ns_ast#tokenizer(a:lines)

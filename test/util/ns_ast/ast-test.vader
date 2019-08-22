@@ -89,3 +89,25 @@ Expect clojure (Properly indent new form):
               [serenity.util :as util]))
 
 
+"
+" =========================================================
+"
+
+Given clojure (Single :require ns on its own line):
+  (ns serenity.core
+    (:require
+      [serenity.cargo :as cargo]))
+
+Execute (Add vector to :require form):
+  let ast = Build()
+  let require = ast.FindClause(':require')
+  call require.Append('[serenity.util :as util]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require
+      [serenity.cargo :as cargo]
+      [serenity.util :as util]))
+
+
