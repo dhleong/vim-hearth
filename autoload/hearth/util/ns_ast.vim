@@ -276,6 +276,38 @@ func! s:vectorFindKeywordValue(keyword) dict " {{{
     return v:null
 endfunc " }}}
 
+func! s:vectorSortedAddKeyPair(key, value) dict " {{{
+    " find sorted insert index
+    let index = 1  " assume there's an initial clause already
+    let length = len(self.children)
+    while index < length
+        let node = self.children[index]
+        if node.type ==# 'literal' && node.value[0] ==# ':' && node.value > a:key
+            break
+        endif
+        let index += 1
+    endwhile
+
+    " TODO should we insert newlines?
+
+    " insert whitespace if necessary
+    if index == length
+        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index)
+        let index += 1
+    endif
+
+    let self.children = extend(self.children, [
+        \ s:createLiteral(a:key),
+        \ s:createLiteral(' ', 'ws'),
+        \ s:createLiteral(a:value),
+        \ ], index)
+
+    " append whitespace if necessary
+    if index < length
+        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index + 3)
+    endif
+endfunc " }}}
+
 func! s:vectorSortedInsertLiteral(literal) dict " {{{
     " find sorted insert index
     let index = 0
@@ -311,6 +343,7 @@ let s:vector = {
         \ 'FindKeywordValue': function('s:vectorFindKeywordValue'),
         \ 'FindClause': function('s:vectorFindClause'),
         \ 'SortedInsertLiteral': function('s:vectorSortedInsertLiteral'),
+        \ 'SortedAddKeyPair': function('s:vectorSortedAddKeyPair'),
         \ 'ToString': function('s:vectorToString'),
         \ }
 

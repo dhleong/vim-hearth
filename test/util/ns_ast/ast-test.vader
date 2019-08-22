@@ -146,3 +146,41 @@ Execute (Sorted Insert of literal into a :refer vector at beginning):
 Expect clojure (Properly indent new form):
   (ns serenity.core
     (:require [serenity.cargo :refer [beef geisha-dolls]]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require and :as):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+Execute (Sorted Insert of keyword clause):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  call vector.SortedAddKeyPair(':refer', '[geisha-dolls]')
+  call Write(ast)
+
+Expect clojure (Insert :refer clause correctly):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo :refer [geisha-dolls]]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require and :refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls]]))
+
+Execute (Sorted Insert of keyword clause):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  call vector.SortedAddKeyPair(':as', 'cargo')
+  call Write(ast)
+
+Expect clojure (Insert :as clause correctly):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo :refer [geisha-dolls]]))
