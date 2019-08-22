@@ -1,34 +1,4 @@
 
-func! s:countInLine(line, toCount) " {{{
-    if empty(a:line)
-        " line is empty; cannot have any
-        return 0
-    endif
-
-    if has('patch-8.0.0794')
-        " NOTE: patch794 introduces support for counting within a string.
-        " it has a hang bug with empty lines until patch 1410, hence the
-        " explicit check above
-        return count(a:line, a:toCount)
-    endif
-
-    " NOTE: this is a quick, naive implementation for ancient versions of vim
-    " that don't have native support
-    let l:count = 0
-    let matchLen = len(a:toCount)
-    let i = 0
-    while i < len(a:line)
-        if a:line[i : i+matchLen-1] ==# a:toCount
-            let l:count += 1
-            let i += matchLen
-            continue
-        endif
-
-        let i += 1
-    endwhile
-    return l:count
-endfunc " }}}
-
 func! s:parseNsForm(lines) " {{{
     let nsStart = -1
     let nsEnd = -1
@@ -39,7 +9,7 @@ func! s:parseNsForm(lines) " {{{
 
     for i in range(0, len(a:lines) - 1)
         let line = a:lines[i]
-        let nesting += s:countInLine(line, '(') - s:countInLine(line, ')')
+        let nesting += count(line, '(') - count(line, ')')
 
         if line =~# '(:require '
             let requireStart = i
@@ -75,7 +45,7 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
 
     for i in range(a:start, a:end)
         let line = a:lines[i]
-        let depth += s:countInLine(line, '[') - s:countInLine(line, ']')
+        let depth += count(line, '[') - count(line, ']')
 
         let m = matchlist(line, '\[\([a-zA-Z0-9_.-]*\)\>')
         if empty(m)
