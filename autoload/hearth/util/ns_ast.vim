@@ -45,7 +45,7 @@ func! s:tokNext() dict
     while len(self._lines) && empty(self._lines[0])
         let self._lines = self._lines[1:]
         if !empty(self._lines)
-            return ['ws', '\n']
+            return ['ws', "\n"]
         endif
     endwhile
     if empty(self._lines)
@@ -182,12 +182,45 @@ endfunc " }}}
 
 " }}}
 
+" VECTOR {{{
+
+func! s:vectorToString() dict
+    let children = map(copy(self.children), 'v:val.ToString()')
+    return '[' . join(children, '') . ']'
+endfunc
+
+let s:vector = {
+        \ 'type': 'vector',
+        \ 'ToString': function('s:vectorToString'),
+        \ }
+
+func! s:parseVector(tok) " {{{
+    call a:tok.Expect('[')
+
+    let children = []
+    while 1
+        let [kind, next] = a:tok.Peek()
+        if kind ==# ']'
+            call a:tok.Next()
+            break
+        else
+            let children = add(children, s:parse(a:tok))
+        endif
+    endwhile
+
+    return extend(deepcopy(s:vector), {
+        \ 'children': children,
+        \ })
+endfunc " }}}
+
+" }}}
+
 func! s:parse(tok)
     let [kind, next] = a:tok.Peek()
     if kind ==# '('
         return s:parseForm(a:tok)
     elseif kind ==# '['
-        throw 'TODO vector'
+        return s:parseVector(a:tok)
     else
         return s:parseLiteral(a:tok)
     endif

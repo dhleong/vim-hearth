@@ -64,7 +64,7 @@ Execute (Get tokens):
   AssertEqual ['ws', ' '], tok.Next()
   AssertEqual ['string', 'Mal Reynolds'], tok.Next()
   AssertEqual ['}', '}'], tok.Next()
-  AssertEqual ['ws', '\n'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
 
   AssertEqual ['ws', '  '], tok.Next()
   AssertEqual ['sym', 'serenity.core'], tok.Next()

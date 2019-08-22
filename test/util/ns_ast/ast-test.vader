@@ -2,6 +2,13 @@ Execute (Provide util fns):
   func! Build()
     return hearth#util#ns_ast#Build(getline(0, line('$')))
   endfunc
+  func! Write(ast)
+    " there ought to be a better way:
+    norm ggdG
+    let lines = split(a:ast.ToString(), "\n", 1)
+    call append(0, lines)
+    norm Gdd
+  endfunc
 
 "
 " =========================================================
@@ -16,3 +23,30 @@ Execute (Build AST):
   AssertEqual 'ns', ast.first
   AssertEqual '(ns serenity.core)', ast.ToString()
   AssertEqual v:null, ast.FindClause(':require')
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+Execute (Build AST):
+  let ast = Build()
+  AssertEqual 'form', ast.type
+  AssertEqual 'ns', ast.first
+  AssertEqual "\n", ast.children[2].value
+
+  let require = ast.FindClause(':require')
+  AssertEqual 'form', require.type
+  AssertEqual ':require', require.first
+  AssertEqual 2, len(require.children)
+  AssertEqual 'ws', require.children[0].kind
+  AssertEqual 'vector', require.children[1].type
+  call Write(ast)
+
+Expect clojure (Produce identical result):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
