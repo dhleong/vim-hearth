@@ -130,6 +130,26 @@ endfunc
 
 " ======= AST parsing =====================================
 
+func! s:findClauseInChildren(self, clause) " {{{
+    for child in a:self.children
+        if has_key(child, 'FindClause')
+            let fromChild = child.FindClause(a:clause)
+            if !empty(fromChild)
+                return fromChild
+            endif
+        endif
+    endfor
+    return v:null
+endfunc " }}}
+
+func! s:withChildren(node, children) " {{{
+    for child in a:children
+        let child.parent = a:node
+    endfor
+    let a:node.children = a:children
+    return a:node
+endfunc " }}}
+
 " LITERAL {{{
 
 func! s:literalToString() dict
@@ -170,20 +190,12 @@ func! s:formAppend(literal) dict " {{{
         \ ])
 endfunc " }}}
 
-func! s:formFindClause(first) dict " {{{
-    for child in self.children
-        if child.type ==# 'form'
-            if child.first ==# a:first
-                return child
-            endif
+func! s:formFindClause(clause) dict " {{{
+    if self.first ==# a:clause
+        return self
+    endif
 
-            let fromChild = child.FindClause(a:first)
-            if !empty(fromChild)
-                return fromChild
-            endif
-        endif
-    endfor
-    return v:null
+    return s:findClauseInChildren(self, a:clause)
 endfunc " }}}
 
 func! s:formToString() dict " {{{
@@ -217,23 +229,36 @@ func! s:parseForm(tok) " {{{
         endif
     endwhile
 
-    return extend(deepcopy(s:form), {
-        \ 'children': children,
+    return s:withChildren(extend(deepcopy(s:form), {
         \ 'first': first,
-        \ })
+        \ }), children)
 endfunc " }}}
 
 " }}}
 
 " VECTOR {{{
 
-func! s:vectorToString() dict
+func! s:vectorFindClause(clause) dict " {{{
+    if empty(self.children)
+        return v:null
+    endif
+
+    let first = self.children[0]
+    if first.type ==# 'literal' && first.value ==# a:clause
+        return self
+    endif
+
+    return s:findClauseInChildren(self, a:clause)
+endfunc " }}}
+
+func! s:vectorToString() dict " {{{
     let children = map(copy(self.children), 'v:val.ToString()')
     return '[' . join(children, '') . ']'
-endfunc
+endfunc " }}}
 
 let s:vector = {
         \ 'type': 'vector',
+        \ 'FindClause': function('s:vectorFindClause'),
         \ 'ToString': function('s:vectorToString'),
         \ }
 
@@ -251,9 +276,7 @@ func! s:parseVector(tok) " {{{
         endif
     endwhile
 
-    return extend(deepcopy(s:vector), {
-        \ 'children': children,
-        \ })
+    return s:withChildren(deepcopy(s:vector), children)
 endfunc " }}}
 
 " }}}
@@ -271,6 +294,8 @@ func! s:parse(tok) " {{{
     let result.col = col
     return result
 endfunc " }}}
+
+" ======= Public interface ================================
 
 func! hearth#util#ns_ast#Build(lines)
     let tok = hearth#util#ns_ast#tokenizer(a:lines)

@@ -33,6 +33,22 @@ Given clojure (ns with single :require):
   (ns serenity.core
     (:require [serenity.cargo :as cargo]))
 
+Execute (Build AST and find serenity.cargo require clause):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  AssertEqual v:t_dict, type(vector)
+  AssertEqual 'vector', vector.type
+  AssertEqual 'form', vector.parent.type
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
 Execute (Build AST):
   let ast = Build()
   AssertEqual 'form', ast.type
