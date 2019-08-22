@@ -11,7 +11,7 @@ func! s:parseNsForm(lines) " {{{
         let line = a:lines[i]
         let nesting += count(line, '(') - count(line, ')')
 
-        if line =~# '(:require '
+        if line =~# '(:require\($\| \)'
             let requireStart = i
         endif
         if requireStart >= 0 && line =~# '\])*[ ]*$'
@@ -42,6 +42,15 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
     let indent = '            '  " default for top level of (:require)
     let suffix = ''
     let exists = 0
+
+    if a:lines[a:start] =~# ':require$' && a:end > a:start
+        " FIXME: there's probably a better way to infer the
+        " correct indent
+        let m = matchlist(a:lines[a:start + 1], '^\([ ]\+\)')
+        if len(m)
+            let indent = m[1]
+        endif
+    endif
 
     for i in range(a:start, a:end)
         let line = a:lines[i]
@@ -82,7 +91,6 @@ func! s:chooseInsert(lines, ns, start, end) "{{{
         endif
     endfor
 
-    " TODO is this always correct?
     let indent .= repeat(' ', targetDepth)
     return {
         \ 'exists': exists,

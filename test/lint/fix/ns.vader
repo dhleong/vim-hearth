@@ -130,3 +130,79 @@ Execute (Add :as clause):
 Expect clojure (Insert :as clause):
   (ns serenity.core
     (:require [serenity.cargo :as cargo :refer [geisha-dolls]]))
+
+"
+" =========================================================
+"
+
+Given clojure (Single :require entry on its own line):
+  (ns serenity.core
+    (:require
+      [clojure.string :as str]))
+
+Execute (Insert ns at end):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Inserted at end):
+  (ns serenity.core
+    (:require
+      [clojure.string :as str]
+      [serenity.cargo :as cargo]))
+
+"
+" =========================================================
+"
+
+Given clojure (Single :require entry on its own line):
+  (ns serenity.core
+    (:require
+      [serenity.util :as util]))
+
+Execute (Insert ns at end):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Inserted at beginning):
+  (ns serenity.core
+    (:require
+      [serenity.cargo :as cargo]
+      [serenity.util :as util]))
+"
+" =========================================================
+"
+
+Given clojure (Multiple :require entries on their own lines):
+  (ns serenity.core
+    (:require
+      [clojure.string :as str]
+      [serenity.util :as util]))
+
+Execute (Insert ns at end):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Inserted at end):
+  (ns serenity.core
+    (:require
+      [clojure.string :as str]
+      [serenity.cargo :as cargo]
+      [serenity.util :as util]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Single, nested :require entry on its own line):
+  (ns serenity.core
+    (:require
+      [serenity
+       [util :as util]]))
+
+Execute (Insert nested ns in middle):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Nested insert in middle):
+  (ns serenity.core
+    (:require
+      [serenity
+       [cargo :as cargo]
+       [util :as util]]))
