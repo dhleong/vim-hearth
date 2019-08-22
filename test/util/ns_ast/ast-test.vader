@@ -33,12 +33,13 @@ Given clojure (ns with single :require):
   (ns serenity.core
     (:require [serenity.cargo :as cargo]))
 
-Execute (Build AST and find serenity.cargo require clause):
+Execute (Build AST and find serenity.cargo require clause, :as arg):
   let ast = Build()
   let vector = ast.FindClause('serenity.cargo')
   AssertEqual v:t_dict, type(vector)
   AssertEqual 'vector', vector.type
   AssertEqual 'form', vector.parent.type
+  AssertEqual 'cargo', vector.FindKeywordValue(':as').value
 
 
 "
@@ -127,3 +128,21 @@ Expect clojure (Properly indent new form):
       [serenity.util :as util]))
 
 
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require and :refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls]]))
+
+Execute (Sorted Insert of literal into a :refer vector at beginning):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  let refer = vector.FindKeywordValue(':refer')
+  call refer.SortedInsertLiteral('beef')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [beef geisha-dolls]]))

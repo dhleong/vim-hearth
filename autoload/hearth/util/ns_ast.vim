@@ -251,6 +251,56 @@ func! s:vectorFindClause(clause) dict " {{{
     return s:findClauseInChildren(self, a:clause)
 endfunc " }}}
 
+func! s:vectorFindKeywordValue(keyword) dict " {{{
+    let i = 0
+    let length = len(self.children)
+
+    while i < length
+        let node = self.children[i]
+        if node.type !=# 'literal' || node.kind !=# 'kw' || node.value !=# a:keyword
+            let i += 1
+            continue
+        endif
+
+        let valueIndex = i + 1
+        while valueIndex < length && get(self.children[valueIndex], 'kind', '') ==# 'ws'
+            let valueIndex += 1
+        endwhile
+
+        if valueIndex >= length
+            break
+        endif
+        return self.children[valueIndex]
+    endwhile
+
+    return v:null
+endfunc " }}}
+
+func! s:vectorSortedInsertLiteral(literal) dict " {{{
+    " find sorted insert index
+    let index = 0
+    let length = len(self.children)
+    while index < length
+        let node = self.children[index]
+        if node.type ==# 'literal' && node.value > a:literal
+            break
+        endif
+        let index += 1
+    endwhile
+
+    " insert whitespace before or after, as appropriate
+    if !empty(self.children) && index > 0
+        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index)
+        let index += 1
+    endif
+
+    let self.children = insert(self.children, s:createLiteral(a:literal), index)
+
+    if !empty(self.children) && index == 0
+        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index + 1)
+    endif
+endfunc " }}}
+
 func! s:vectorToString() dict " {{{
     let children = map(copy(self.children), 'v:val.ToString()')
     return '[' . join(children, '') . ']'
@@ -258,7 +308,9 @@ endfunc " }}}
 
 let s:vector = {
         \ 'type': 'vector',
+        \ 'FindKeywordValue': function('s:vectorFindKeywordValue'),
         \ 'FindClause': function('s:vectorFindClause'),
+        \ 'SortedInsertLiteral': function('s:vectorSortedInsertLiteral'),
         \ 'ToString': function('s:vectorToString'),
         \ }
 
