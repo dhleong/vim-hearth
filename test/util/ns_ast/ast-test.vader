@@ -1,0 +1,18 @@
+Execute (Provide util fns):
+  func! Build()
+    return hearth#util#ns_ast#Build(getline(0, line('$')))
+  endfunc
+
+"
+" =========================================================
+"
+
+Given clojure (Empty ns):
+  (ns serenity.core)
+
+Execute (Build AST):
+  let ast = Build()
+  AssertEqual 'form', ast.type
+  AssertEqual 'ns', ast.first
+  AssertEqual '(ns serenity.core)', ast.ToString()
+  AssertEqual v:null, ast.FindClause(':require')

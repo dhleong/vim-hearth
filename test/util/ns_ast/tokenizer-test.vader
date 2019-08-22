@@ -1,0 +1,72 @@
+Execute (Provide util fns):
+  func! Tokenizer()
+    return hearth#util#ns_ast#tokenizer(getline(0, line('$')))
+  endfunc
+
+"
+" =========================================================
+"
+
+Given clojure (Empty ns):
+  (ns serenity.core)
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual ['(', '('], tok.Next()
+  AssertEqual ['sym', 'ns'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['sym', 'serenity.core'], tok.Next()
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['end', ''], tok.Next()
+
+"
+" =========================================================
+"
+
+Given clojure (Simple string literal):
+  "Mal Reynolds"
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual ['string', 'Mal Reynolds'], tok.Next()
+
+"
+" =========================================================
+"
+
+Given clojure (Fancy string literal):
+  "Mal \"Captain\"
+  Reynolds"
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  " NOTE: let's keep the escaped quotes for simplicity when rebuilding
+  AssertEqual ['string', 'Mal \"Captain\"' . "\n" . 'Reynolds'], tok.Next()
+
+
+"
+" =========================================================
+"
+
+Given clojure (Empty Ns with simple meta):
+  (ns ^{:author "Mal Reynolds"}
+    serenity.core)
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual ['(', '('], tok.Next()
+  AssertEqual ['sym', 'ns'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+
+  AssertEqual ['meta', '^'], tok.Next()
+  AssertEqual ['{', '{'], tok.Next()
+  AssertEqual ['kw', ':author'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['string', 'Mal Reynolds'], tok.Next()
+  AssertEqual ['}', '}'], tok.Next()
+  AssertEqual ['ws', '\n'], tok.Next()
+
+  AssertEqual ['ws', '  '], tok.Next()
+  AssertEqual ['sym', 'serenity.core'], tok.Next()
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['end', ''], tok.Next()
