@@ -106,3 +106,62 @@ Execute (Preserve Col value with Peek):
   AssertEqual 3, tok.Col()
   AssertEqual ['ws', ' '], tok.Peek()
   AssertEqual 3, tok.Col()
+
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with commented-out forms):
+  (ns serenity.core
+    (:require ; [serenity.cargo :refer [geisha-dolls]]
+              #_[serenity.cargo :refer [beef]]
+              #_["impossible]@name" :default impossible]
+              [serenity.cargo :as cargo :refer [#_medicine]])
+    #_(:import Alliance))
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual 0, tok.col
+  AssertEqual ['(', '('], tok.Next()
+  AssertEqual ['sym', 'ns'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['sym', 'serenity.core'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '  '], tok.Next()
+  AssertEqual ['(', '('], tok.Next()
+  AssertEqual ['kw', ':require'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['comment', '; [serenity.cargo :refer [geisha-dolls]]'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '            '], tok.Next()
+  AssertEqual ['commented', '#_[serenity.cargo :refer [beef]]'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '            '], tok.Next()
+  AssertEqual ['commented', '#_["impossible]@name" :default impossible]'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '            '], tok.Next()
+  AssertEqual ['[', '['], tok.Next()
+  AssertEqual ['sym', 'serenity.cargo'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['kw', ':as'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['sym', 'cargo'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['kw', ':refer'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['[', '['], tok.Next()
+  AssertEqual ['commented', '#_medicine'], tok.Next()
+  AssertEqual [']', ']'], tok.Next()
+  AssertEqual [']', ']'], tok.Next()
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '  '], tok.Next()
+  AssertEqual ['commented', '#_(:import Alliance)'], tok.Next()
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['end', ''], tok.Next()

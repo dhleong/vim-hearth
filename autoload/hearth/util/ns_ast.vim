@@ -4,12 +4,19 @@
 let s:tokens = [
     \ ['ws', '^\s\+'],
     \ ['meta', '^\^'],
+    \ ['comment', '^;.*$'],
     \ ['(', '^('], [')', '^)'],
     \ ['{', '^{'], ['}', '^}'],
     \ ['[', '^\['], [']', '^\]'],
     \ ['kw', '^:[^ )\]}]\+'],
     \ ['sym', '^[^ )\]}]\+'],
     \ ]
+
+let s:ends = {
+    \ '[': ']',
+    \ '(': ')',
+    \ '{': '}',
+    \ }
 
 func! s:tokHasPeek() dict
     return type(self._peeked) != type(v:null) || self._peeked != v:null
@@ -26,9 +33,10 @@ func! s:tokStringLiteral() dict " {{{
         let length = len(line)
         while i < length
             if line[i] ==# '"' && (i == 0 || line[i-1] !=# '\')
-                let literal .= line[0:i - 1]
+                let read = line[0:i - 1]
+                let literal .= read
                 let self.col += i + 1
-                let self._lines[0] = line[len(literal)+1:]
+                let self._lines[0] = line[len(read)+1:]
                 return ['string', literal]
             endif
             let i += 1
@@ -41,6 +49,61 @@ func! s:tokStringLiteral() dict " {{{
     endwhile
 
     throw 'Unterminated string: "' . literal
+endfunc " }}}
+
+func! s:tokCommentedForm() dict " {{{
+    let self._lines[0] = self._lines[0][2:]
+    let self.col += 2
+
+    let [kind, next] = self.Next()
+    let form = '#_' . next
+    if kind !~# '[\[({]'
+        " commented symbol or kw
+        return ['commented', form]
+    endif
+
+    let open = kind
+    let close = s:ends[kind]
+    let depth = 1
+
+    while !empty(self._lines)
+        let line = self._lines[0]
+        let i = 0
+        let length = len(line)
+        while i < length
+            if line[i] ==# '"'
+
+                " strings are a special case; we can delegate
+                " to stringLiteral() but then need to refresh
+                " our local state
+                let literal = '"' . self.stringLiteral()[1] . '"'
+                let form .= literal
+                let i = 0
+                let line = self._lines[0]
+                let length = len(line)
+                continue
+
+            elseif line[i] ==# open
+                let depth += 1
+            elseif line[i] ==# close && depth > 1
+                let depth -= 1
+            elseif line[i] ==# close
+                let read = line[0:i]
+                let form .= read
+                let self.col += i + 1
+                let self._lines[0] = line[len(read):]
+                return ['commented', form]
+            endif
+            let i += 1
+        endwhile
+
+        " couldn't find on this line; perhaps on the next?
+        let form .= line . "\n"
+        let self._lines = self._lines[1:]
+        let self.col = 0
+    endwhile
+
+    throw 'Unterminated commented form: "' . form
 endfunc " }}}
 
 func! s:tokNext() dict
@@ -65,6 +128,8 @@ func! s:tokNext() dict
     let line = self._lines[0]
     if line[0] ==# '"'
         return self.stringLiteral()
+    elseif line =~# '^#_'
+        return self.commentedForm()
     endif
 
     for [kind, regex] in s:tokens
@@ -115,6 +180,7 @@ let s:tokenizer = {
     \ '_peeked': v:null,
     \ 'col': 0,
     \ 'hasPeek': function('s:tokHasPeek'),
+    \ 'commentedForm': function('s:tokCommentedForm'),
     \ 'stringLiteral': function('s:tokStringLiteral'),
     \ 'Col': function('s:tokCol'),
     \ 'Expect': function('s:tokExpect'),
@@ -285,6 +351,9 @@ func! s:parseForm(tok) " {{{
         let [kind, next] = a:tok.Peek()
         if kind ==# ')'
             call a:tok.Next()
+            break
+        elseif kind ==# 'end'
+            throw 'Incomplete form: ' . string(map(children, 'v:val.ToString()'))
             break
         else
             let children = add(children, s:parse(a:tok))

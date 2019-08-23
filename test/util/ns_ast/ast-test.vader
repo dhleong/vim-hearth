@@ -270,3 +270,25 @@ Expect clojure (Properly indent new form):
                [cargo :as cargo]
                [util :as util]]))
 
+"
+" =========================================================
+"
+
+Given clojure (ns with comments):
+  (ns serenity.core
+    (:require ; [serenity.cargo :refer [geisha-dolls]]
+              #_[serenity.cargo :refer [beef]]
+              [serenity.cargo :as cargo :refer [#_medicine]])
+    #_(:import Alliance))
+
+Execute (Append vector to nested :require form):
+"   call Write(Build())
+  call Build()
+
+Expect clojure (Rebuild without changes):
+  (ns serenity.core
+    (:require ; [serenity.cargo :refer [geisha-dolls]]
+              #_[serenity.cargo :refer [beef]]
+              [serenity.cargo :as cargo :refer [#_medicine]])
+    #_(:import Alliance))
+
