@@ -226,14 +226,9 @@ func! s:formSortedInsertLiteral(literal) dict " {{{
     endif
 
     " find the index to insert
-    let firstNonWhitespace = -1
     while index < length
         let node = self.children[index]
-        let isWhitespace = s:isWhitespace(node)
-        if !isWhitespace && firstNonWhitespace < 0
-            let firstNonWhitespace  = index
-        endif
-        if !isWhitespace && s:compare(a:literal, node)
+        if !s:isWhitespace(node) && s:compare(a:literal, node)
             break
         endif
         let index += 1
@@ -245,9 +240,8 @@ func! s:formSortedInsertLiteral(literal) dict " {{{
         \ ]
 
     let indentIndex = 0
-    if index <= firstNonWhitespace
-        " the first item doesn't need indenting before it; instead,
-        " indent any item that might previously have been first
+    if index < length
+        " indent after *unless* we're appending to the end
         let indentIndex = len(toAdd)
     endif
     let toAdd = extend(toAdd, [
