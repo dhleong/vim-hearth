@@ -352,22 +352,20 @@ func! s:vectorSortedAddKeyPair(key, value) dict " {{{
 
     " TODO should we insert newlines?
 
-    " insert whitespace if necessary
-    if index == length
-        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index)
-        let index += 1
-    endif
-
-    let self.children = extend(self.children, [
+    let toInsert = [
         \ s:createLiteral(a:key),
         \ s:createLiteral(' ', 'ws'),
         \ s:createLiteral(a:value),
-        \ ], index)
+        \ ]
 
-    " append whitespace if necessary
-    if index < length
-        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index + 3)
+    " insert or append whitespace if necessary
+    if index == length
+        let toInsert = insert(toInsert, s:createLiteral(' ', 'ws'), 0)
+    elseif index < length
+        let toInsert = add(toInsert, s:createLiteral(' ', 'ws'))
     endif
+
+    let self.children = extend(self.children, toInsert, index)
 endfunc " }}}
 
 func! s:vectorSortedInsertLiteral(literal) dict " {{{
