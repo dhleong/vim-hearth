@@ -200,6 +200,38 @@ endfunc
 
 " ======= AST parsing =====================================
 
+" Util {{{
+
+func! s:compare(literal, node) " {{{
+    let expected = 'literal'
+    let lhs = a:literal
+    if a:literal[0] ==# '['
+        let expected = 'vector'
+        let lhs = a:literal[1:]
+    elseif a:literal[0] ==# '('
+        let expected = 'form'
+        let lhs = a:literal[1:]
+    endif
+
+    if a:node.type !=# expected
+        return 0
+    endif
+
+    if a:node.type ==# 'literal'
+        let rhs = a:node.value
+    elseif a:node.type ==# 'vector'
+        let rhsNode = a:node.children[0]
+        if rhsNode.type !=# 'literal'
+            return 0
+        endif
+        let rhs = rhsNode.value
+    elseif rhsNode.type ==# 'form'
+        let rhs = rhsNode.first
+    endif
+
+    return lhs < rhs
+endfunc " }}}
+
 func! s:findClauseInChildren(self, clause) " {{{
     for child in a:self.children
         if has_key(child, 'FindClause')
@@ -238,35 +270,7 @@ func! s:withChildren(node, children) " {{{
     return a:node
 endfunc " }}}
 
-func! s:compare(literal, node) " {{{
-    let expected = 'literal'
-    let lhs = a:literal
-    if a:literal[0] ==# '['
-        let expected = 'vector'
-        let lhs = a:literal[1:]
-    elseif a:literal[0] ==# '('
-        let expected = 'form'
-        let lhs = a:literal[1:]
-    endif
-
-    if a:node.type !=# expected
-        return 0
-    endif
-
-    if a:node.type ==# 'literal'
-        let rhs = a:node.value
-    elseif a:node.type ==# 'vector'
-        let rhsNode = a:node.children[0]
-        if rhsNode.type !=# 'literal'
-            return 0
-        endif
-        let rhs = rhsNode.value
-    elseif rhsNode.type ==# 'form'
-        let rhs = rhsNode.first
-    endif
-
-    return lhs < rhs
-endfunc " }}}
+" }}}
 
 " LITERAL {{{
 
@@ -309,23 +313,20 @@ func! s:formInsertLiteral(literal) dict " {{{
     endif
 
     let index = s:findInsertIndex(self, a:literal, index)
-
+    let toInsert = [ s:createLiteral(a:literal) ]
     let indent = repeat(' ', newIndentCols)
-    let toAdd = [
-        \ s:createLiteral(a:literal),
-        \ ]
 
     let indentIndex = 0
     if index < length
         " indent after *unless* we're appending to the end
-        let indentIndex = len(toAdd)
+        let indentIndex = len(toInsert)
     endif
-    let toAdd = extend(toAdd, [
+    let toInsert = extend(toInsert, [
         \ s:createLiteral("\n", 'ws'),
         \ s:createLiteral(indent, 'ws'),
         \ ], indentIndex)
 
-    let self.children = extend(self.children, toAdd, index)
+    let self.children = extend(self.children, toInsert, index)
 endfunc " }}}
 
 func! s:formFindClause(clause) dict " {{{
@@ -449,7 +450,7 @@ endfunc " }}}
 
 func! s:vectorInsertLiteral(literal) dict " {{{
     let index = s:findInsertIndex(self, a:literal, 0)
-    let toInsert = [s:createLiteral(a:literal)]
+    let toInsert = [ s:createLiteral(a:literal) ]
 
     " insert whitespace before or after, as appropriate
     if a:literal[0] =~# '[\[(]'
