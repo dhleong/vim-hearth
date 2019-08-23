@@ -159,88 +159,99 @@ func! s:tryInsert(line, mode, args)
     endif
 endfunc
 
+" func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
+"     " NOTE: this may be simpler to do from clojure...?
+"
+"     let lines = a:context.lines
+"
+"     let [nsStart, nsEnd, requireStart, requireEnd] = s:parseNsForm(lines)
+"     if requireStart < 0
+"         " no (:require) found; create it
+"         let lines[nsEnd] = substitute(lines[nsEnd], ')$', '', '')
+"         let form = s:createForm(a:ns, a:mode, a:000)
+"         return insert(lines, '  (:require ' . form . '))', nsEnd + 1)
+"     endif
+"
+"     " pick an appropriate place to insert
+"     let insert = s:chooseInsert(lines, a:ns, requireStart, requireEnd)
+"     let index = insert.index
+"     if insert.exists
+"         let inserted = s:tryInsert(lines[index], a:mode, a:000)
+"         if type(inserted) == v:t_string
+"             let lines[index] = inserted
+"             return lines
+"         endif
+"
+"         " already refer'd?
+"         return
+"     endif
+"
+"     let form = s:createForm(insert.ns, a:mode, a:000)
+"
+"     if index < requireStart
+"         " special case: inserting before the first require'd form
+"         let lines = insert(lines, '  (:require ' . form, index + 1)
+"         let lines[index + 2] = substitute(lines[index + 2], '(:require', '         ', '')
+"         return lines
+"     endif
+"
+"     let line = lines[index]
+"     let lines = insert(lines, insert.indent . form . insert.suffix, index + 1)
+"
+"     " if it's the last line, transfer the closing parens
+"     if line =~# ']))[ ]*$'
+"         let lines[index] = substitute(line, '))$', '', '')
+"         let lines[index + 1] .= '))'
+"     endif
+"
+"     return lines
+" endfunc
+
 func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
-    " NOTE: this may be simpler to do from clojure...?
-
-    let lines = a:context.lines
-
-    let [nsStart, nsEnd, requireStart, requireEnd] = s:parseNsForm(lines)
-    if requireStart < 0
-        " no (:require) found; create it
-        let lines[nsEnd] = substitute(lines[nsEnd], ')$', '', '')
-        let form = s:createForm(a:ns, a:mode, a:000)
-        return insert(lines, '  (:require ' . form . '))', nsEnd + 1)
+    let ast = hearth#util#ns_ast#Build(a:context.lines)
+    let require = ast.FindClause(':require')
+    if empty(require)
+        " easy case; just add a new form
+        call ast.SortedInsertLiteral('(:require ' . s:createForm(a:ns, a:mode, a:000) . ')')
+        return hearth#util#ns_ast#ToLines(ast)
     endif
 
-    " pick an appropriate place to insert
-    let insert = s:chooseInsert(lines, a:ns, requireStart, requireEnd)
-    let index = insert.index
-    if insert.exists
-        let inserted = s:tryInsert(lines[index], a:mode, a:000)
-        if type(inserted) == v:t_string
-            let lines[index] = inserted
-            return lines
+    let existingVector = require.FindClause(a:ns)
+    let ns = a:ns
+    if empty(existingVector)
+        " try a nested insert?
+        let lastDot = strridx(ns, '.')
+        if lastDot > 0
+            let parentNs = ns[:lastDot-1]
+            let parent = require.FindClause(parentNs)
+            if !empty(parent)
+                let require = parent
+                let ns = ns[lastDot+1:]
+            endif
+        endif
+    endif
+
+    if empty(existingVector)
+        " new reference; also pretty easy
+        call require.SortedInsertLiteral(s:createForm(ns, a:mode, a:000))
+        return hearth#util#ns_ast#ToLines(ast)
+    endif
+
+    if a:mode ==# 'as'
+        if !empty(existingVector.FindKeywordValue(':as'))
+            " existing alias already; do nothing
+            return
         endif
 
-        " already refer'd?
-        return
+        call existingVector.SortedAddKeyPair(':as', a:1)
+    elseif a:mode ==# 'refer'
+        let refer = existingVector.FindKeywordValue(':refer')
+        if empty(refer)
+            call existingVector.SortedAddKeyPair(':refer', '[' . a:1 . ']')
+        else
+            call refer.SortedInsertLiteral(a:1)
+        endif
     endif
 
-    let form = s:createForm(insert.ns, a:mode, a:000)
-
-    if index < requireStart
-        " special case: inserting before the first require'd form
-        let lines = insert(lines, '  (:require ' . form, index + 1)
-        let lines[index + 2] = substitute(lines[index + 2], '(:require', '         ', '')
-        return lines
-    endif
-
-    let line = lines[index]
-    let lines = insert(lines, insert.indent . form . insert.suffix, index + 1)
-
-    " if it's the last line, transfer the closing parens
-    if line =~# ']))[ ]*$'
-        let lines[index] = substitute(line, '))$', '', '')
-        let lines[index + 1] .= '))'
-    endif
-
-    return lines
+    return hearth#util#ns_ast#ToLines(ast)
 endfunc
-
-" func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
-"     let ast = hearth#util#ns_ast#Build(a:context.lines)
-"     let require = ast.FindClause(':require')
-"     if empty(require)
-"         " easy case; just add a new form
-"         call ast.SortedInsertLiteral('(:require ' . s:createForm(a:ns, a:mode, a:000) . ')')
-"         return hearth#util#ns_ast#ToLines(ast)
-"     endif
-"
-"     let existingVector = require.FindClause(a:ns)
-"     if empty(existingVector)
-"         " new reference; also pretty easy
-"         " TODO sorted insert
-"         call require.SortedInsertLiteral(s:createForm(a:ns, a:mode, a:000))
-"         return hearth#util#ns_ast#ToLines(ast)
-"     endif
-"
-"     " TODO nested insert
-"
-"     if a:mode ==# 'as'
-"         if !empty(require.FindKeywordValue(':as'))
-"             " existing alias already; do nothing
-"             return
-"         endif
-"
-"         call require.SortedAddKeyPair(':as', a:1)
-"     elseif a:mode ==# 'refer'
-"         let refer = existingVector.FindKeywordValue(':refer')
-"         if empty(refer)
-"             call existingVector.SortedAddKeyPair(':refer', '[' . a:1 . ']')
-"         else
-"             call refer.SortedInsertLiteral(a:1)
-"         endif
-"     endif
-"
-"     return hearth#util#ns_ast#ToLines(ast)
-" endfunc

@@ -376,23 +376,34 @@ func! s:vectorSortedInsertLiteral(literal) dict " {{{
     let length = len(self.children)
     while index < length
         let node = self.children[index]
-        if node.type ==# 'literal' && node.value > a:literal
+        if !s:isWhitespace(node) && s:compare(a:literal, node)
             break
         endif
         let index += 1
     endwhile
 
+    let toInsert = [s:createLiteral(a:literal)]
+
     " insert whitespace before or after, as appropriate
-    if !empty(self.children) && index > 0
-        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index)
-        let index += 1
+    if a:literal[0] =~# '[\[(]'
+        let indent = repeat(' ', self.col + 1)
+        let indentIndex = 0
+        if index < length
+            " indent after *unless* we're appending to the end
+            let indentIndex = len(toInsert)
+        endif
+
+        let toInsert = extend(toInsert, [
+            \ s:createLiteral("\n", 'ws'),
+            \ s:createLiteral(indent, 'ws'),
+            \ ], indentIndex)
+    elseif !empty(self.children) && index > 0
+        let toInsert = insert(toInsert, s:createLiteral(' ', 'ws'), 0)
+    elseif !empty(self.children)
+        let toInsert = add(toInsert, s:createLiteral(' ', 'ws'))
     endif
 
-    let self.children = insert(self.children, s:createLiteral(a:literal), index)
-
-    if !empty(self.children) && index == 0
-        let self.children = insert(self.children, s:createLiteral(' ', 'ws'), index + 1)
-    endif
+    let self.children = extend(self.children, toInsert, index)
 endfunc " }}}
 
 func! s:vectorToString() dict " {{{
