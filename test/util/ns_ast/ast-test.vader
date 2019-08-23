@@ -38,7 +38,6 @@ Execute (Build AST and find serenity.cargo require clause, :as arg):
   let vector = ast.FindClause('serenity.cargo')
   AssertEqual v:t_dict, type(vector)
   AssertEqual 'vector', vector.type
-  AssertEqual 'form', vector.parent.type
   AssertEqual 'cargo', vector.FindKeywordValue(':as').value
 
 

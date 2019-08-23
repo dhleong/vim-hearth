@@ -103,8 +103,12 @@ func! s:tokExpect(kind) dict
 endfunc
 
 func! s:tokThrow(message) dict
-    " TODO we could include some position info
-    throw a:message
+    let line = '(empty)'
+    if !empty(self.lines)
+        let line = self.lines[0]
+    endif
+    throw 'ERROR: ' . a:message
+        \. "\nAt col " . self.Col() . ': ' . line
 endfunc
 
 let s:tokenizer = {
@@ -147,9 +151,6 @@ func! s:isWhitespace(node) " {{{
 endfunc " }}}
 
 func! s:withChildren(node, children) " {{{
-    for child in a:children
-        let child.parent = a:node
-    endfor
     let a:node.children = a:children
     return a:node
 endfunc " }}}
@@ -210,7 +211,6 @@ endfunc
 " FORM {{{
 
 func! s:formSortedInsertLiteral(literal) dict " {{{
-    " TODO infer indent better?
     let newIndentCols = self.col + 2
     let length = len(self.children)
     if length < 2 || self.children[1].type ==# 'vector'
