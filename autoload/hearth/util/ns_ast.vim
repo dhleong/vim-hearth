@@ -212,6 +212,23 @@ func! s:findClauseInChildren(self, clause) " {{{
     return v:null
 endfunc " }}}
 
+func! s:findInsertIndex(self, literal, initialIndex) " {{{
+    let self = a:self
+    let index = a:initialIndex
+    let length = len(self.children)
+
+    " find the index to insert
+    while index < length
+        let node = self.children[index]
+        if !s:isWhitespace(node) && s:compare(a:literal, node)
+            break
+        endif
+        let index += 1
+    endwhile
+
+    return index
+endfunc " }}}
+
 func! s:isWhitespace(node) " {{{
     return a:node.type ==# 'literal' && a:node.kind ==# 'ws'
 endfunc " }}}
@@ -291,14 +308,7 @@ func! s:formInsertLiteral(literal) dict " {{{
         endwhile
     endif
 
-    " find the index to insert
-    while index < length
-        let node = self.children[index]
-        if !s:isWhitespace(node) && s:compare(a:literal, node)
-            break
-        endif
-        let index += 1
-    endwhile
+    let index = s:findInsertIndex(self, a:literal, index)
 
     let indent = repeat(' ', newIndentCols)
     let toAdd = [
@@ -438,24 +448,14 @@ func! s:vectorAddKeyPair(key, value) dict " {{{
 endfunc " }}}
 
 func! s:vectorInsertLiteral(literal) dict " {{{
-    " find sorted insert index
-    let index = 0
-    let length = len(self.children)
-    while index < length
-        let node = self.children[index]
-        if !s:isWhitespace(node) && s:compare(a:literal, node)
-            break
-        endif
-        let index += 1
-    endwhile
-
+    let index = s:findInsertIndex(self, a:literal, 0)
     let toInsert = [s:createLiteral(a:literal)]
 
     " insert whitespace before or after, as appropriate
     if a:literal[0] =~# '[\[(]'
         let indent = repeat(' ', self.col + 1)
         let indentIndex = 0
-        if index < length
+        if index < len(self.children)
             " indent after *unless* we're appending to the end
             let indentIndex = len(toInsert)
         endif
