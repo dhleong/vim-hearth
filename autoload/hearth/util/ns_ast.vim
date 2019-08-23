@@ -210,7 +210,7 @@ endfunc
 
 " FORM {{{
 
-func! s:formSortedInsertLiteral(literal) dict " {{{
+func! s:formInsertLiteral(literal) dict " {{{
     let newIndentCols = self.col + 2
     let length = len(self.children)
     if length < 2 || self.children[1].type ==# 'vector'
@@ -267,7 +267,7 @@ endfunc " }}}
 
 let s:form = {
     \ 'type': 'form',
-    \ 'SortedInsertLiteral': function('s:formSortedInsertLiteral'),
+    \ 'InsertLiteral': function('s:formInsertLiteral'),
     \ 'FindClause': function('s:formFindClause'),
     \ 'ToString': function('s:formToString'),
     \ }
@@ -338,7 +338,7 @@ func! s:vectorFindKeywordValue(keyword) dict " {{{
     return v:null
 endfunc " }}}
 
-func! s:vectorSortedAddKeyPair(key, value) dict " {{{
+func! s:vectorAddKeyPair(key, value) dict " {{{
     " find sorted insert index
     let index = 1  " assume there's an initial clause already
     let length = len(self.children)
@@ -368,7 +368,7 @@ func! s:vectorSortedAddKeyPair(key, value) dict " {{{
     let self.children = extend(self.children, toInsert, index)
 endfunc " }}}
 
-func! s:vectorSortedInsertLiteral(literal) dict " {{{
+func! s:vectorInsertLiteral(literal) dict " {{{
     " find sorted insert index
     let index = 0
     let length = len(self.children)
@@ -413,8 +413,8 @@ let s:vector = {
     \ 'type': 'vector',
     \ 'FindKeywordValue': function('s:vectorFindKeywordValue'),
     \ 'FindClause': function('s:vectorFindClause'),
-    \ 'SortedInsertLiteral': function('s:vectorSortedInsertLiteral'),
-    \ 'SortedAddKeyPair': function('s:vectorSortedAddKeyPair'),
+    \ 'InsertLiteral': function('s:vectorInsertLiteral'),
+    \ 'AddKeyPair': function('s:vectorAddKeyPair'),
     \ 'ToString': function('s:vectorToString'),
     \ }
 

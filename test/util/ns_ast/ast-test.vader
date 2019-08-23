@@ -77,7 +77,7 @@ Given clojure (Empty ns):
 
 Execute (Add :require form):
   let ast = Build()
-  call ast.SortedInsertLiteral('(:require [serenity.cargo :as cargo])')
+  call ast.InsertLiteral('(:require [serenity.cargo :as cargo])')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -96,7 +96,7 @@ Given clojure (Single :require ns):
 Execute (Add vector to end of :require form):
   let ast = Build()
   let require = ast.FindClause(':require')
-  call require.SortedInsertLiteral('[serenity.util :as util]')
+  call require.InsertLiteral('[serenity.util :as util]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -116,7 +116,7 @@ Given clojure (Single :require ns):
 Execute (Add vector to beginning of :require form):
   let ast = Build()
   let require = ast.FindClause(':require')
-  call require.SortedInsertLiteral('[serenity.cargo :as cargo]')
+  call require.InsertLiteral('[serenity.cargo :as cargo]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -137,7 +137,7 @@ Given clojure (Multi- :require ns):
 Execute (Add vector to middle of :require form):
   let ast = Build()
   let require = ast.FindClause(':require')
-  call require.SortedInsertLiteral('[serenity.cargo :as cargo]')
+  call require.InsertLiteral('[serenity.cargo :as cargo]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -159,7 +159,7 @@ Given clojure (Single :require ns on its own line):
 Execute (Add vector to end of :require form):
   let ast = Build()
   let require = ast.FindClause(':require')
-  call require.SortedInsertLiteral('[serenity.util :as util]')
+  call require.InsertLiteral('[serenity.util :as util]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -181,7 +181,7 @@ Execute (Sorted Insert of literal into a :refer vector at beginning):
   let ast = Build()
   let vector = ast.FindClause('serenity.cargo')
   let refer = vector.FindKeywordValue(':refer')
-  call refer.SortedInsertLiteral('beef')
+  call refer.InsertLiteral('beef')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -200,7 +200,7 @@ Given clojure (ns with single :require and :as):
 Execute (Sorted Insert of keyword clause):
   let ast = Build()
   let vector = ast.FindClause('serenity.cargo')
-  call vector.SortedAddKeyPair(':refer', '[geisha-dolls]')
+  call vector.AddKeyPair(':refer', '[geisha-dolls]')
   call Write(ast)
 
 Expect clojure (Insert :refer clause correctly):
@@ -219,7 +219,7 @@ Given clojure (ns with single :require and :refer):
 Execute (Sorted Insert of keyword clause):
   let ast = Build()
   let vector = ast.FindClause('serenity.cargo')
-  call vector.SortedAddKeyPair(':as', 'cargo')
+  call vector.AddKeyPair(':as', 'cargo')
   call Write(ast)
 
 Expect clojure (Insert :as clause correctly):
@@ -239,7 +239,7 @@ Given clojure (ns with single, nested :require):
 Execute (Insert vector into nested :require form):
   let ast = Build()
   let vector = ast.FindClause('serenity')
-  call vector.SortedInsertLiteral('[cargo :as cargo]')
+  call vector.InsertLiteral('[cargo :as cargo]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -261,7 +261,7 @@ Given clojure (ns with single, nested :require):
 Execute (Append vector to nested :require form):
   let ast = Build()
   let vector = ast.FindClause('serenity')
-  call vector.SortedInsertLiteral('[util :as util]')
+  call vector.InsertLiteral('[util :as util]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):

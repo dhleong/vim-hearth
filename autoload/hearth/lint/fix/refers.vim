@@ -39,7 +39,7 @@ func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
     let require = ast.FindClause(':require')
     if empty(require)
         " easy case; just add a new form
-        call ast.SortedInsertLiteral('(:require '
+        call ast.InsertLiteral('(:require '
             \. s:createForm(require, a:ns, a:mode, a:000)
             \. ')')
         return hearth#util#ns_ast#ToLines(ast)
@@ -62,7 +62,7 @@ func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
 
     if empty(existingVector)
         " new reference; also pretty easy
-        call require.SortedInsertLiteral(s:createForm(require, ns, a:mode, a:000))
+        call require.InsertLiteral(s:createForm(require, ns, a:mode, a:000))
         return hearth#util#ns_ast#ToLines(ast)
     endif
 
@@ -73,15 +73,15 @@ func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
             return
         endif
 
-        call existingVector.SortedAddKeyPair(':as', a:1)
+        call existingVector.AddKeyPair(':as', a:1)
     elseif a:mode ==# 'refer'
         let refer = existingVector.FindKeywordValue(':refer')
         if empty(refer)
-            call existingVector.SortedAddKeyPair(
+            call existingVector.AddKeyPair(
                 \ ':refer',
                 \ s:createReferList(require, a:1))
         else
-            call refer.SortedInsertLiteral(a:1)
+            call refer.InsertLiteral(a:1)
         endif
     endif
 
