@@ -112,16 +112,16 @@ func! s:tokThrow(message) dict
 endfunc
 
 let s:tokenizer = {
-            \ '_peeked': v:null,
-            \ 'col': 0,
-            \ 'hasPeek': function('s:tokHasPeek'),
-            \ 'stringLiteral': function('s:tokStringLiteral'),
-            \ 'Col': function('s:tokCol'),
-            \ 'Expect': function('s:tokExpect'),
-            \ 'Next': function('s:tokNext'),
-            \ 'Peek': function('s:tokPeek'),
-            \ 'Throw': function('s:tokThrow'),
-            \ }
+    \ '_peeked': v:null,
+    \ 'col': 0,
+    \ 'hasPeek': function('s:tokHasPeek'),
+    \ 'stringLiteral': function('s:tokStringLiteral'),
+    \ 'Col': function('s:tokCol'),
+    \ 'Expect': function('s:tokExpect'),
+    \ 'Next': function('s:tokNext'),
+    \ 'Peek': function('s:tokPeek'),
+    \ 'Throw': function('s:tokThrow'),
+    \ }
 
 func! hearth#util#ns_ast#tokenizer(lines)
     let tokenizer = deepcopy(s:tokenizer)
@@ -266,11 +266,11 @@ func! s:formToString() dict " {{{
 endfunc " }}}
 
 let s:form = {
-        \ 'type': 'form',
-        \ 'SortedInsertLiteral': function('s:formSortedInsertLiteral'),
-        \ 'FindClause': function('s:formFindClause'),
-        \ 'ToString': function('s:formToString'),
-        \ }
+    \ 'type': 'form',
+    \ 'SortedInsertLiteral': function('s:formSortedInsertLiteral'),
+    \ 'FindClause': function('s:formFindClause'),
+    \ 'ToString': function('s:formToString'),
+    \ }
 
 func! s:parseForm(tok) " {{{
     call a:tok.Expect('(')
@@ -412,13 +412,13 @@ func! s:vectorToString() dict " {{{
 endfunc " }}}
 
 let s:vector = {
-        \ 'type': 'vector',
-        \ 'FindKeywordValue': function('s:vectorFindKeywordValue'),
-        \ 'FindClause': function('s:vectorFindClause'),
-        \ 'SortedInsertLiteral': function('s:vectorSortedInsertLiteral'),
-        \ 'SortedAddKeyPair': function('s:vectorSortedAddKeyPair'),
-        \ 'ToString': function('s:vectorToString'),
-        \ }
+    \ 'type': 'vector',
+    \ 'FindKeywordValue': function('s:vectorFindKeywordValue'),
+    \ 'FindClause': function('s:vectorFindClause'),
+    \ 'SortedInsertLiteral': function('s:vectorSortedInsertLiteral'),
+    \ 'SortedAddKeyPair': function('s:vectorSortedAddKeyPair'),
+    \ 'ToString': function('s:vectorToString'),
+    \ }
 
 func! s:parseVector(tok) " {{{
     call a:tok.Expect('[')
