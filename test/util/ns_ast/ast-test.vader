@@ -5,7 +5,7 @@ Execute (Provide util fns):
   func! Write(ast)
     " there ought to be a better way:
     norm ggdG
-    let lines = split(a:ast.ToString(), "\n", 1)
+    let lines = hearth#util#ns_ast#ToLines(a:ast)
     call append(0, lines)
     norm Gdd
   endfunc
@@ -78,7 +78,7 @@ Given clojure (Empty ns):
 
 Execute (Add :require form):
   let ast = Build()
-  call ast.Append('(:require [serenity.cargo :as cargo])')
+  call ast.SortedInsertLiteral('(:require [serenity.cargo :as cargo])')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -94,10 +94,30 @@ Given clojure (Single :require ns):
   (ns serenity.core
     (:require [serenity.cargo :as cargo]))
 
-Execute (Add vector to :require form):
+Execute (Add vector to end of :require form):
   let ast = Build()
   let require = ast.FindClause(':require')
-  call require.Append('[serenity.util :as util]')
+  call require.SortedInsertLiteral('[serenity.util :as util]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]
+              [serenity.util :as util]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Single :require ns):
+  (ns serenity.core
+    (:require [serenity.util :as util]))
+
+Execute (Add vector to beginning of :require form):
+  let ast = Build()
+  let require = ast.FindClause(':require')
+  call require.SortedInsertLiteral('[serenity.cargo :as cargo]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):
@@ -115,10 +135,10 @@ Given clojure (Single :require ns on its own line):
     (:require
       [serenity.cargo :as cargo]))
 
-Execute (Add vector to :require form):
+Execute (Add vector to end of :require form):
   let ast = Build()
   let require = ast.FindClause(':require')
-  call require.Append('[serenity.util :as util]')
+  call require.SortedInsertLiteral('[serenity.util :as util]')
   call Write(ast)
 
 Expect clojure (Properly indent new form):

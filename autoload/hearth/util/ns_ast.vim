@@ -121,7 +121,7 @@ let s:tokenizer = {
 
 func! hearth#util#ns_ast#tokenizer(lines)
     let tokenizer = deepcopy(s:tokenizer)
-    let tokenizer._lines = a:lines
+    let tokenizer._lines = copy(a:lines)
     return tokenizer
 endfunc
 
@@ -142,12 +142,46 @@ func! s:findClauseInChildren(self, clause) " {{{
     return v:null
 endfunc " }}}
 
+func! s:isWhitespace(node) " {{{
+    return a:node.type ==# 'literal' && a:node.kind ==# 'ws'
+endfunc " }}}
+
 func! s:withChildren(node, children) " {{{
     for child in a:children
         let child.parent = a:node
     endfor
     let a:node.children = a:children
     return a:node
+endfunc " }}}
+
+func! s:compare(literal, node) " {{{
+    let expected = 'literal'
+    let lhs = a:literal
+    if a:literal[0] ==# '['
+        let expected = 'vector'
+        let lhs = a:literal[1:]
+    elseif a:literal[0] ==# '('
+        let expected = 'form'
+        let lhs = a:literal[1:]
+    endif
+
+    if a:node.type !=# expected
+        return 0
+    endif
+
+    if a:node.type ==# 'literal'
+        let rhs = a:node.value
+    elseif a:node.type ==# 'vector'
+        let rhsNode = a:node.children[0]
+        if rhsNode.type !=# 'literal'
+            return 0
+        endif
+        let rhs = rhsNode.value
+    elseif rhsNode.type ==# 'form'
+        let rhs = rhsNode.first
+    endif
+
+    return lhs < rhs
 endfunc " }}}
 
 " LITERAL {{{
@@ -175,19 +209,53 @@ endfunc
 
 " FORM {{{
 
-func! s:formAppend(literal) dict " {{{
+func! s:formSortedInsertLiteral(literal) dict " {{{
     " TODO infer indent better?
     let newIndentCols = self.col + 2
-    if len(self.children) < 2 || self.children[1].type ==# 'vector'
+    let length = len(self.children)
+    if length < 2 || self.children[1].type ==# 'vector'
         let newIndentCols += len(self.first)
     endif
 
+    let index = 0
+    if self.first ==# 'ns'
+        " special case; skip past the ns symbol
+        while index < length && self.children[index].type !=# 'vector'
+            let index += 1
+        endwhile
+    endif
+
+    " find the index to insert
+    let firstNonWhitespace = -1
+    while index < length
+        let node = self.children[index]
+        let isWhitespace = s:isWhitespace(node)
+        if !isWhitespace && firstNonWhitespace < 0
+            let firstNonWhitespace  = index
+        endif
+        if !isWhitespace && s:compare(a:literal, node)
+            break
+        endif
+        let index += 1
+    endwhile
+
     let indent = repeat(' ', newIndentCols)
-    let self.children = extend(self.children, [
+    let toAdd = [
+        \ s:createLiteral(a:literal),
+        \ ]
+
+    let indentIndex = 0
+    if index <= firstNonWhitespace
+        " the first item doesn't need indenting before it; instead,
+        " indent any item that might previously have been first
+        let indentIndex = len(toAdd)
+    endif
+    let toAdd = extend(toAdd, [
         \ s:createLiteral("\n", 'ws'),
         \ s:createLiteral(indent, 'ws'),
-        \ s:createLiteral(a:literal)
-        \ ])
+        \ ], indentIndex)
+
+    let self.children = extend(self.children, toAdd, index)
 endfunc " }}}
 
 func! s:formFindClause(clause) dict " {{{
@@ -205,7 +273,7 @@ endfunc " }}}
 
 let s:form = {
         \ 'type': 'form',
-        \ 'Append': function('s:formAppend'),
+        \ 'SortedInsertLiteral': function('s:formSortedInsertLiteral'),
         \ 'FindClause': function('s:formFindClause'),
         \ 'ToString': function('s:formToString'),
         \ }
@@ -385,4 +453,8 @@ endfunc " }}}
 func! hearth#util#ns_ast#Build(lines)
     let tok = hearth#util#ns_ast#tokenizer(a:lines)
     return s:parse(tok)
+endfunc
+
+func! hearth#util#ns_ast#ToLines(ast)
+    return split(a:ast.ToString(), "\n", 1)
 endfunc

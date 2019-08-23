@@ -206,3 +206,41 @@ func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
 
     return lines
 endfunc
+
+" func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
+"     let ast = hearth#util#ns_ast#Build(a:context.lines)
+"     let require = ast.FindClause(':require')
+"     if empty(require)
+"         " easy case; just add a new form
+"         call ast.SortedInsertLiteral('(:require ' . s:createForm(a:ns, a:mode, a:000) . ')')
+"         return hearth#util#ns_ast#ToLines(ast)
+"     endif
+"
+"     let existingVector = require.FindClause(a:ns)
+"     if empty(existingVector)
+"         " new reference; also pretty easy
+"         " TODO sorted insert
+"         call require.SortedInsertLiteral(s:createForm(a:ns, a:mode, a:000))
+"         return hearth#util#ns_ast#ToLines(ast)
+"     endif
+"
+"     " TODO nested insert
+"
+"     if a:mode ==# 'as'
+"         if !empty(require.FindKeywordValue(':as'))
+"             " existing alias already; do nothing
+"             return
+"         endif
+"
+"         call require.SortedAddKeyPair(':as', a:1)
+"     elseif a:mode ==# 'refer'
+"         let refer = existingVector.FindKeywordValue(':refer')
+"         if empty(refer)
+"             call existingVector.SortedAddKeyPair(':refer', '[' . a:1 . ']')
+"         else
+"             call refer.SortedInsertLiteral(a:1)
+"         endif
+"     endif
+"
+"     return hearth#util#ns_ast#ToLines(ast)
+" endfunc
