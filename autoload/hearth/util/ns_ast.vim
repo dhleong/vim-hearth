@@ -280,6 +280,9 @@ endfunc " }}}
 " LITERAL {{{
 
 func! s:literalToString() dict
+    if self.kind ==# 'string'
+        return '"' . self.value . '"'
+    endif
     return self.value
 endfunc
 
