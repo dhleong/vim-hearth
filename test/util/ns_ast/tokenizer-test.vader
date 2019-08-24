@@ -1,0 +1,167 @@
+Execute (Provide util fns):
+  func! Tokenizer()
+    return hearth#util#ns_ast#tokenizer(getline(0, line('$')))
+  endfunc
+
+"
+" =========================================================
+"
+
+Given clojure (Empty ns):
+  (ns serenity.core)
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual 0, tok.col
+  AssertEqual ['(', '('], tok.Next()
+
+  AssertEqual 1, tok.col
+  AssertEqual ['sym', 'ns'], tok.Next()
+
+  AssertEqual 3, tok.col
+  AssertEqual ['ws', ' '], tok.Next()
+
+  AssertEqual 4, tok.col
+  AssertEqual ['sym', 'serenity.core'], tok.Next()
+
+  AssertEqual 17, tok.col
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['end', ''], tok.Next()
+
+"
+" =========================================================
+"
+
+Given clojure (Simple string literal):
+  "Mal Reynolds"
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual ['string', 'Mal Reynolds'], tok.Next()
+
+"
+" =========================================================
+"
+
+Given clojure (Fancy string literal):
+  "Mal \"Captain\"
+  Reynolds"
+
+Execute (Get tokens from multi-line string):
+  let tok = Tokenizer()
+  " NOTE: let's keep the escaped quotes for simplicity when rebuilding
+  AssertEqual ['string', 'Mal \"Captain\"' . "\n" . 'Reynolds'], tok.Next()
+  AssertEqual 9, tok.col
+
+
+"
+" =========================================================
+"
+
+Given clojure (Empty Ns with simple meta):
+  (ns ^{:author "Mal Reynolds"}
+    serenity.core)
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual ['(', '('], tok.Next()
+  AssertEqual ['sym', 'ns'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+
+  AssertEqual ['meta', '^'], tok.Next()
+  AssertEqual ['{', '{'], tok.Next()
+  AssertEqual ['kw', ':author'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['string', 'Mal Reynolds'], tok.Next()
+  AssertEqual ['}', '}'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual 0, tok.col
+  AssertEqual ['ws', '  '], tok.Next()
+
+  AssertEqual 2, tok.col
+  AssertEqual ['sym', 'serenity.core'], tok.Next()
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['end', ''], tok.Next()
+
+
+"
+" =========================================================
+"
+
+Given clojure (Empty Ns with simple meta):
+  (ns ^{:author "Mal Reynolds"}
+    serenity.core)
+
+Execute (Preserve Col value with Peek):
+  let tok = Tokenizer()
+  AssertEqual 0, tok.Col()
+  AssertEqual ['(', '('], tok.Next()
+
+  AssertEqual 1, tok.Col()
+  AssertEqual ['sym', 'ns'], tok.Peek()
+  AssertEqual 1, tok.Col()
+  AssertEqual ['sym', 'ns'], tok.Next()
+
+  AssertEqual 3, tok.Col()
+  AssertEqual ['ws', ' '], tok.Peek()
+  AssertEqual 3, tok.Col()
+
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with commented-out forms):
+  (ns serenity.core
+    (:require ; [serenity.cargo :refer [geisha-dolls]]
+              #_[serenity.cargo :refer [beef]]
+              #_["impossible]@name" :default impossible]
+              [serenity.cargo :as cargo :refer [#_medicine]])
+    #_(:import Alliance))
+
+Execute (Get tokens):
+  let tok = Tokenizer()
+  AssertEqual 0, tok.col
+  AssertEqual ['(', '('], tok.Next()
+  AssertEqual ['sym', 'ns'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['sym', 'serenity.core'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '  '], tok.Next()
+  AssertEqual ['(', '('], tok.Next()
+  AssertEqual ['kw', ':require'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['comment', '; [serenity.cargo :refer [geisha-dolls]]'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '            '], tok.Next()
+  AssertEqual ['commented', '#_[serenity.cargo :refer [beef]]'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '            '], tok.Next()
+  AssertEqual ['commented', '#_["impossible]@name" :default impossible]'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '            '], tok.Next()
+  AssertEqual ['[', '['], tok.Next()
+  AssertEqual ['sym', 'serenity.cargo'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['kw', ':as'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['sym', 'cargo'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['kw', ':refer'], tok.Next()
+  AssertEqual ['ws', ' '], tok.Next()
+  AssertEqual ['[', '['], tok.Next()
+  AssertEqual ['commented', '#_medicine'], tok.Next()
+  AssertEqual [']', ']'], tok.Next()
+  AssertEqual [']', ']'], tok.Next()
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['ws', "\n"], tok.Next()
+
+  AssertEqual ['ws', '  '], tok.Next()
+  AssertEqual ['commented', '#_(:import Alliance)'], tok.Next()
+  AssertEqual [')', ')'], tok.Next()
+  AssertEqual ['end', ''], tok.Next()

@@ -1,0 +1,294 @@
+Execute (Provide util fns):
+  func! Build()
+    return hearth#util#ns_ast#Build(getline(0, line('$')))
+  endfunc
+  func! Write(ast)
+    " there ought to be a better way:
+    norm ggdG
+    let lines = hearth#util#ns_ast#ToLines(a:ast)
+    call append(0, lines)
+    norm Gdd
+  endfunc
+
+"
+" =========================================================
+"
+
+Given clojure (Empty ns):
+  (ns serenity.core)
+
+Execute (Build AST):
+  let ast = Build()
+  AssertEqual 'form', ast.type
+  AssertEqual 'ns', ast.first
+  AssertEqual '(ns serenity.core)', ast.ToString()
+  AssertEqual v:null, ast.FindClause(':require')
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+Execute (Build AST and find serenity.cargo require clause, :as arg):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  AssertEqual v:t_dict, type(vector)
+  AssertEqual 'vector', vector.type
+  AssertEqual 'cargo', vector.FindKeywordValue(':as').value
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+Execute (Build AST):
+  let ast = Build()
+  AssertEqual 'form', ast.type
+  AssertEqual 'ns', ast.first
+  AssertEqual "\n", ast.children[2].value
+
+  let require = ast.FindClause(':require')
+  AssertEqual 'form', require.type
+  AssertEqual ':require', require.first
+  AssertEqual 2, len(require.children)
+  AssertEqual 'ws', require.children[0].kind
+  AssertEqual 'vector', require.children[1].type
+  call Write(ast)
+
+Expect clojure (Produce identical result):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Empty ns):
+  (ns serenity.core)
+
+Execute (Add :require form):
+  let ast = Build()
+  call ast.InsertLiteral('(:require [serenity.cargo :as cargo])')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Single :require ns):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+Execute (Add vector to end of :require form):
+  let ast = Build()
+  let require = ast.FindClause(':require')
+  call require.InsertLiteral('[serenity.util :as util]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]
+              [serenity.util :as util]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Single :require ns):
+  (ns serenity.core
+    (:require [serenity.util :as util]))
+
+Execute (Add vector to beginning of :require form):
+  let ast = Build()
+  let require = ast.FindClause(':require')
+  call require.InsertLiteral('[serenity.cargo :as cargo]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]
+              [serenity.util :as util]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Multi- :require ns):
+  (ns serenity.core
+    (:require [clojure.string :as str]
+              [serenity.util :as util]))
+
+Execute (Add vector to middle of :require form):
+  let ast = Build()
+  let require = ast.FindClause(':require')
+  call require.InsertLiteral('[serenity.cargo :as cargo]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [clojure.string :as str]
+              [serenity.cargo :as cargo]
+              [serenity.util :as util]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Single :require ns on its own line):
+  (ns serenity.core
+    (:require
+      [serenity.cargo :as cargo]))
+
+Execute (Add vector to end of :require form):
+  let ast = Build()
+  let require = ast.FindClause(':require')
+  call require.InsertLiteral('[serenity.util :as util]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require
+      [serenity.cargo :as cargo]
+      [serenity.util :as util]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require and :refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls]]))
+
+Execute (Sorted Insert of literal into a :refer vector at beginning):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  let refer = vector.FindKeywordValue(':refer')
+  call refer.InsertLiteral('beef')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [beef geisha-dolls]]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require and :as):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+Execute (Sorted Insert of keyword clause):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  call vector.AddKeyPair(':refer', '[geisha-dolls]')
+  call Write(ast)
+
+Expect clojure (Insert :refer clause correctly):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo :refer [geisha-dolls]]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single :require and :refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls]]))
+
+Execute (Sorted Insert of keyword clause):
+  let ast = Build()
+  let vector = ast.FindClause('serenity.cargo')
+  call vector.AddKeyPair(':as', 'cargo')
+  call Write(ast)
+
+Expect clojure (Insert :as clause correctly):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo :refer [geisha-dolls]]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single, nested :require):
+  (ns serenity.core
+    (:require [serenity
+               [util :as util]]))
+
+Execute (Insert vector into nested :require form):
+  let ast = Build()
+  let vector = ast.FindClause('serenity')
+  call vector.InsertLiteral('[cargo :as cargo]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity
+               [cargo :as cargo]
+               [util :as util]]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (ns with single, nested :require):
+  (ns serenity.core
+    (:require [serenity
+               [cargo :as cargo]]))
+
+Execute (Append vector to nested :require form):
+  let ast = Build()
+  let vector = ast.FindClause('serenity')
+  call vector.InsertLiteral('[util :as util]')
+  call Write(ast)
+
+Expect clojure (Properly indent new form):
+  (ns serenity.core
+    (:require [serenity
+               [cargo :as cargo]
+               [util :as util]]))
+
+"
+" =========================================================
+"
+
+Given clojure (ns with comments):
+  (ns serenity.core
+    (:require ; [serenity.cargo :refer [geisha-dolls]]
+              #_[serenity.cargo :refer [beef]]
+              [serenity.cargo :as cargo :refer [#_medicine]])
+    #_(:import Alliance))
+
+Execute (Append vector to nested :require form):
+"   call Write(Build())
+  call Build()
+
+Expect clojure (Rebuild without changes):
+  (ns serenity.core
+    (:require ; [serenity.cargo :refer [geisha-dolls]]
+              #_[serenity.cargo :refer [beef]]
+              [serenity.cargo :as cargo :refer [#_medicine]])
+    #_(:import Alliance))
+

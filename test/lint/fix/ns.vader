@@ -206,3 +206,20 @@ Expect clojure (Nested insert in middle):
       [serenity
        [cargo :as cargo]
        [util :as util]]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Simple ns with existing paren-refer):
+  (ns serenity.core
+    (:require [serenity.util :refer (cry-baby)]))
+
+Execute (Add new paren-refer clause):
+  call InsertNs('serenity.cargo', 'refer', 'geisha-dolls')
+
+Expect clojure (Insert :as clause):
+  (ns serenity.core
+    (:require [serenity.cargo :refer (geisha-dolls)]
+              [serenity.util :refer (cry-baby)]))
