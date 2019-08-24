@@ -23,7 +23,9 @@ func! hearth#nav#find#Test()
 
     let ext = expand('%:e')
     let found = s:findAlt(ext)
-    if !found && ext ==# 'cljc'
+    if found
+        return
+    elseif !found && ext ==# 'cljc'
         if s:findAlt('cljs')
             return
         elseif s:findAlt('clj')
