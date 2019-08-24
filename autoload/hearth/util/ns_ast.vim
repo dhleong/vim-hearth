@@ -22,6 +22,12 @@ func! s:tokHasPeek() dict
     return type(self._peeked) != type(v:null) || self._peeked != v:null
 endfunc
 
+func! s:tokAdvanceLine() dict
+    let self._lines = self._lines[1:]
+    let self.col = 0
+    let self.line += 1
+endfunc
+
 func! s:tokStringLiteral() dict " {{{
     let self._lines[0] = self._lines[0][1:]
     let self.col += 1
@@ -44,8 +50,7 @@ func! s:tokStringLiteral() dict " {{{
 
         " couldn't find on this line; perhaps on the next?
         let literal .= line . "\n"
-        let self._lines = self._lines[1:]
-        let self.col = 0
+        call self.advanceLine()
     endwhile
 
     throw 'Unterminated string: "' . literal
@@ -99,8 +104,7 @@ func! s:tokCommentedForm() dict " {{{
 
         " couldn't find on this line; perhaps on the next?
         let form .= line . "\n"
-        let self._lines = self._lines[1:]
-        let self.col = 0
+        call self.advanceLine()
     endwhile
 
     throw 'Unterminated commented form: "' . form
@@ -115,8 +119,7 @@ func! s:tokNext() dict
     endif
 
     while len(self._lines) && empty(self._lines[0])
-        let self._lines = self._lines[1:]
-        let self.col = 0
+        call self.advanceLine()
         if !empty(self._lines)
             return ['ws', "\n"]
         endif
@@ -179,6 +182,8 @@ endfunc
 let s:tokenizer = {
     \ '_peeked': v:null,
     \ 'col': 0,
+    \ 'line': 0,
+    \ 'advanceLine': function('s:tokAdvanceLine'),
     \ 'hasPeek': function('s:tokHasPeek'),
     \ 'commentedForm': function('s:tokCommentedForm'),
     \ 'stringLiteral': function('s:tokStringLiteral'),
@@ -525,7 +530,9 @@ endfunc " }}}
 
 func! hearth#util#ns_ast#Build(lines)
     let tok = hearth#util#ns_ast#tokenizer(a:lines)
-    return s:parse(tok)
+    let ast = s:parse(tok)
+    let ast.lineCount = tok.line + 1
+    return ast
 endfunc
 
 func! hearth#util#ns_ast#ToLines(ast)

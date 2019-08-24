@@ -4,7 +4,7 @@ Include: _setup.vader
 " =========================================================
 "
 
-Given clojure (Simple ns with :require entries):
+Given clojure (Empty ns):
   (ns serenity.core)
 
 Execute (Insert first :require):
@@ -13,6 +13,25 @@ Execute (Insert first :require):
 Expect clojure (Inserted first :require):
   (ns serenity.core
     (:require [serenity.cargo :as cargo]))
+
+
+"
+" =========================================================
+"
+
+Given clojure (Empty ns + code):
+  (ns serenity.core)
+
+  (println "Stay Flyin'")
+
+Execute (Insert first :require):
+  call InsertNs('serenity.cargo', 'as', 'cargo')
+
+Expect clojure (Kept code):
+  (ns serenity.core
+    (:require [serenity.cargo :as cargo]))
+
+  (println "Stay Flyin'")
 
 
 "

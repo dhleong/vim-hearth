@@ -34,13 +34,13 @@ func! s:createForm(require, ns, mode, args)
     return form . ']'
 endfunc
 
-func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
-    let ast = hearth#util#ns_ast#Build(a:context.lines)
+func! s:insertRefers(ast, ns, mode, args) " {{{
+    let ast = a:ast
     let require = ast.FindClause(':require')
     if empty(require)
         " easy case; just add a new form
         call ast.InsertLiteral('(:require '
-            \. s:createForm(require, a:ns, a:mode, a:000)
+            \. s:createForm(require, a:ns, a:mode, a:args)
             \. ')')
         return hearth#util#ns_ast#ToLines(ast)
     endif
@@ -62,7 +62,7 @@ func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
 
     if empty(existingVector)
         " new reference; also pretty easy
-        call require.InsertLiteral(s:createForm(require, ns, a:mode, a:000))
+        call require.InsertLiteral(s:createForm(require, ns, a:mode, a:args))
         return hearth#util#ns_ast#ToLines(ast)
     endif
 
@@ -73,17 +73,29 @@ func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
             return
         endif
 
-        call existingVector.AddKeyPair(':as', a:1)
+        call existingVector.AddKeyPair(':as', a:args[0])
     elseif a:mode ==# 'refer'
         let refer = existingVector.FindKeywordValue(':refer')
         if empty(refer)
             call existingVector.AddKeyPair(
                 \ ':refer',
-                \ s:createReferList(require, a:1))
+                \ s:createReferList(require, a:args[0]))
         else
-            call refer.InsertLiteral(a:1)
+            call refer.InsertLiteral(a:args[0])
         endif
     endif
 
     return hearth#util#ns_ast#ToLines(ast)
+endfunc " }}}
+
+func! hearth#lint#fix#refers#Insert(context, ns, mode, ...)
+    let ast = hearth#util#ns_ast#Build(a:context.lines)
+    let astLines = ast.lineCount
+
+    let updatedNs = s:insertRefers(ast, a:ns, a:mode, a:000)
+    if empty(updatedNs)
+        return
+    endif
+
+    return updatedNs + a:context.lines[astLines :]
 endfunc
