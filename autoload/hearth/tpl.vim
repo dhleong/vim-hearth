@@ -25,10 +25,7 @@ func! s:generateTest(type, testNs, baseNs)
 endfunc
 
 func! s:generateSimple(ns)
-    let author = hearth#pref#Get('tpl_author', '(Author)')
-    return ['(ns ^{:author "' . author . '"',
-        \   '      :doc "' . a:ns . '"}', 
-        \   '  ' . a:ns . ')',
+    return ['(ns ' . a:ns . ')',
         \   '']
 endfunc
 
