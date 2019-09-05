@@ -11,7 +11,12 @@ let s:extractBuildsClj = ''
 
 func! s:isIgnoredBuildId(id)
     let ignored = hearth#pref#Get('ignored_build_ids', [])
-    return index(ignored, a:id) != -1
+    if index(ignored, a:id) != -1
+        return 1
+    endif
+
+    let ignoredRegex = hearth#pref#Get('ignored_build_regex', '')
+    return !empty(ignoredRegex) && a:id =~# ignoredRegex
 endfunc
 
 func! s:extractBuilds()
@@ -40,7 +45,7 @@ func! s:activateBuild(port, id)
     let result = fireplace#clj().Query(request)
     if len(result) && result[0] ==# 'no-worker'
         " TODO prompt to start?
-        echo "No worker started for build: " . result[1]
+        echo 'No worker started for build: ' . result[1]
         return
     endif
 
