@@ -1,4 +1,20 @@
-func! s:ReportCljsTestResults(id, path, expr, message)
+func! s:AppendError(bufnr, entries, err) abort
+    let lines = split(a:err, "\r\\=\n", 1)
+    let entries = a:entries
+    call add(entries, {
+        \ 'text': 'ERROR',
+        \ 'filename': expand('#' . a:bufnr . ':p'),
+        \ 'lnum': 1
+        \ })
+
+    for line in lines
+        let entry = {'text': line}
+        call add(entries, entry)
+    endfor
+    call add(entries, entry)
+endfunc
+
+func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
     let str = get(a:message, 'value', '')
     let lines = split(str, "\r\\=\n", 1)
     let entries = []
@@ -25,6 +41,11 @@ func! s:ReportCljsTestResults(id, path, expr, message)
         endif
         call add(entries, entry)
     endfor
+
+    let err = get(a:message, 'err', '')
+    if !empty(err)
+        call s:AppendError(a:bufnr, entries, err)
+    endif
 
     if a:id
         call setqflist([], 'a', {'id': a:id, 'items': entries})
@@ -79,8 +100,8 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
 
     call setqflist([], ' ', {'title': a:expr})
     echo 'Started: ' . a:expr
-    call fireplace#message({'op': 'eval', 'code': expr},
-        \ function('s:ReportCljsTestResults', [get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr]))
+    call fireplace#cljs().Message({'op': 'eval', 'code': expr},
+        \ function('s:ReportCljsTestResults', [bufnr('%'), get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr]))
 endfunc
 
 func! hearth#test#cljs#Run(ns)
