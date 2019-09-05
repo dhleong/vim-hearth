@@ -15,6 +15,17 @@ func! hearth#path#GuessRoot()
     if expand('%:t') ==# 'project.clj' || expand('%:t') ==# 'shadow-cljs.edn'
         return expand('%:p:h')
     endif
+
+    " try looking for a project config file:
+    let config = findfile('shadow-cljs.edn')
+    if empty(config)
+        let config = findfile('project.clj')
+    endif
+    if !empty(config)
+        " found it! that should be the root
+        return fnamemodify(config, ':h')
+    endif
+
     let root = fnamemodify(exists('b:java_root') ? b:java_root : fnamemodify(expand('%'), ':p:s?.*\zs[\/]\(src\|test\)[\/].*??'), ':~')
 
     if root =~# '/src$'
