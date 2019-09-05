@@ -40,6 +40,7 @@ func! s:shadowErrToLint(err) " {{{
 
     let type = m[1][0]  " IE the E or the W
     let lines = split(a:err, '\n')
+    let path = ''
     let linenr = -1
     let col = 1
     let message = []
@@ -50,6 +51,7 @@ func! s:shadowErrToLint(err) " {{{
                 continue
             endif
 
+            let path = m[1]
             let linenr = str2nr(m[2])
             let col = m[3]
             continue
@@ -66,6 +68,7 @@ func! s:shadowErrToLint(err) " {{{
 
     return {
         \   'text': join(message, '\n'),
+        \   'filename': path,
         \   'lnum': linenr,
         \   'col': col,
         \   'type': type,
