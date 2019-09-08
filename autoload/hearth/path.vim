@@ -75,3 +75,13 @@ func! hearth#path#FromNs(ns, ext)
     return tr(a:ns, '-.', '_/') . '.' . a:ext
 endfunc
 
+func! hearth#path#FileFromNs(ns, ext)
+    let path = fireplace#path()
+    let relative = hearth#path#FromNs(a:ns, a:ext)
+    for f in path
+        let fullPath = f . '/' . relative
+        if filereadable(fullPath)
+            return fullPath
+        endif
+    endfor
+endfunc

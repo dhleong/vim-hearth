@@ -15,8 +15,21 @@ func! hearth#test#RunForBuffer()
     endif
 
     silent :Require
-    if expand('%:e') ==# 'cljs'
-        call hearth#test#cljs#Run(ns)
+
+    let ext = expand('%:e')
+    if ext ==# 'cljc'
+        " if there's a cljs namespace test file, run that; otherwise, fall
+        " through below to try to run the right test
+        let cljsPath = hearth#path#FileFromNs(ns, 'cljs')
+        if !empty(cljsPath)
+            call hearth#test#cljs#Run(cljsPath, ns)
+            return
+        endif
+    endif
+
+    if ext ==# 'cljs'
+        let path = hearth#path#FileFromNs(ns, 'cljs')
+        call hearth#test#cljs#Run(path, ns)
     else
         exe 'RunTests ' . ns
     endif

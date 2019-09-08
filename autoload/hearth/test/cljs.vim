@@ -104,7 +104,11 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
         \ function('s:ReportCljsTestResults', [bufnr('%'), get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr]))
 endfunc
 
-func! hearth#test#cljs#Run(ns)
+func! hearth#test#cljs#Run(file, ns)
+    call fireplace#cljs().Message({
+        \ 'op': 'eval',
+        \ 'code': '(load-file ' . hearth#util#Stringify(a:file) .')'
+        \ }, v:t_list)
     let ns = a:ns
     let testExpr = "(cljs.test/run-tests '" . ns . ')'
     call hearth#test#cljs#CaptureTestRun(testExpr)
