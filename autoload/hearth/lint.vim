@@ -57,7 +57,8 @@ func! s:shadowErrToLint(err) " {{{
             continue
         endif
 
-        if line !~# '^---'
+        " NOTE: trim off the inline source, since we're looking at it
+        if line !~# '^---' && line !~# '^.\{0,5\}[ ]*[0-9]\+ |'
             let message = add(message, trim(line))
         endif
     endfor
@@ -67,7 +68,7 @@ func! s:shadowErrToLint(err) " {{{
     endif
 
     return {
-        \   'text': join(message, '\n'),
+        \   'text': join(message, " \n"),
         \   'filename': path,
         \   'lnum': linenr,
         \   'col': col,
