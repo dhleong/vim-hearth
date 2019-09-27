@@ -1,7 +1,7 @@
 
 let s:extractBuildsClj = ''
     \. '(->> (slurp "shadow-cljs.edn")'
-    \. '     (clojure.edn/read-string)'
+    \. '     (clojure.edn/read-string {:default #(do %2)})'
     \. '     :builds'
     \. '     keys'
     \. '     (map #(str "\"" % "\""))'
