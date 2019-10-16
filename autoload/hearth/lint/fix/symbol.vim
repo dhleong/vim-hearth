@@ -1,6 +1,12 @@
 func! s:findCandidateSymbols(symbol)
-    " TODO resolve-missing op from refactor-nrepl middleware could be
-    " useful here?
+    " try resolve-missing op from refactor-nrepl middleware
+    let candidates = hearth#util#resolve_missing#Search(a:symbol)
+    let candidates = filter(candidates, 'v:val.type ==# ":ns"')
+    if !empty(candidates)
+        return map(candidates, "{
+            \ 'ns': v:val.name,
+            \  }")
+    endif
 
     let matches = hearth#util#apropos#Search(a:symbol)
     if empty(matches)
