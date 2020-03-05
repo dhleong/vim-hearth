@@ -13,7 +13,12 @@ func! s:isRelatedTo(context, val) abort
         return 1
     endif
 
-    if a:context.lnum != v:val.lnum
+    if a:context.lnum != a:val.lnum
+        return 0
+    endif
+
+    if a:val.nr !~# ':'
+        " the candidate entry isn't formatted as a hearth lint
         return 0
     endif
 

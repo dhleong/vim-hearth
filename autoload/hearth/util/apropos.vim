@@ -20,7 +20,7 @@ func! hearth#util#apropos#Search(query)
         \ 'query': a:query
         \ }, v:t_list)
 
-    if !has_key(resp[0], 'apropos-matches')
+    if !has_key(resp[0], 'apropos-matches') || empty(resp[0]['apropos-matches'])
         " can we eval apropos directly? it works in shadow-cljs...
         let request = ''
                 \. '(->> (apropos "' . a:query . '")'
@@ -29,9 +29,7 @@ func! hearth#util#apropos#Search(query)
                 \. '             :symbol (name v)})))'
 
         try
-            let session = fireplace#clj().Client().session.id
-            silent let resp = fireplace#clj().Query(
-                \ {'session': session},
+            silent let resp = fireplace#platform().Query(
                 \ request,
                 \ )
             return resp

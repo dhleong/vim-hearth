@@ -9,12 +9,11 @@ func! s:findCandidateSymbols(symbol)
     endif
 
     let matches = hearth#util#apropos#Search(a:symbol)
-    if empty(matches)
-        echom 'No matches for ' . a:symbol
-        return
+    if !empty(matches)
+        return matches
     endif
 
-    return matches
+    echom 'No matches for ' . a:symbol
 endfunc
 
 func! hearth#lint#fix#symbol#Fix(bufnr, context, symbol)
