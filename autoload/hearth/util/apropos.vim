@@ -15,28 +15,32 @@ func! hearth#util#apropos#Search(query)
     "   'symbol': 'the un-namespaced symbol',
     "   'doc': 'from the original result' }
 
+    " prefer eval'ing apropos directly; it seems to get better results
+    " in shadow-cljs
+    let request = ''
+          \. '(->> (apropos "' . a:query . '")'
+          \. '     (map (fn [v]'
+          \. '            {:ns (namespace v)'
+          \. '             :symbol (name v)})))'
+
+    try
+      silent let resp = fireplace#platform().Query(
+            \ request,
+            \ )
+
+      if !empty(resp)
+        return resp
+      endif
+    catch /.*/
+      " apropos not available
+    endtry
+
     let resp = fireplace#message({
         \ 'op': 'apropos',
         \ 'query': a:query
         \ }, v:t_list)
 
     if !has_key(resp[0], 'apropos-matches') || empty(resp[0]['apropos-matches'])
-        " can we eval apropos directly? it works in shadow-cljs...
-        let request = ''
-                \. '(->> (apropos "' . a:query . '")'
-                \. '     (map (fn [v]'
-                \. '            {:ns (namespace v)'
-                \. '             :symbol (name v)})))'
-
-        try
-            silent let resp = fireplace#platform().Query(
-                \ request,
-                \ )
-            return resp
-        catch /.*/
-            " apropos not available
-        endtry
-
         return []
     endif
 
