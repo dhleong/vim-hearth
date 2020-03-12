@@ -7,7 +7,7 @@ let s:fixers = {
     \ }
 
 func! s:typeOf(lint)
-    let [ type, _ ] = split(a:lint.nr, ':')
+    let [ type, _ ] = hearth#lint#errors#Unpack(a:lint)
     return type
 endfunc
 
@@ -17,7 +17,7 @@ func! s:fixLint(bufnr, lines, lint)
         return
     endif
 
-    let [ type, info ] = split(lint.nr, ':')
+    let [ type, info ] = hearth#lint#errors#Unpack(lint)
     if !has_key(s:fixers, type)
         return
     endif

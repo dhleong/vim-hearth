@@ -1,3 +1,19 @@
+func! hearth#lint#errors#Pack(lint, type, info)
+    " Attach an error 'type' and 'info' (both strings) to the
+    " given lint dictionary
+    let a:lint.nr = a:type . ':' . a:info
+endfunc
+
+func! hearth#lint#errors#Unpack(lint)
+    " Extract the error [type, info] (both strings) from the
+    " given lint dictionary.
+    let data = split(a:lint.nr, ':')
+    if len(data) < 2
+        " not created by us
+        return [ '', '' ]
+    endif
+    return data
+endfunc
 
 func! hearth#lint#errors#Expand(lint)
     " Given a lint entry (as sent to ALE, or used in the loclist)
@@ -9,7 +25,7 @@ func! hearth#lint#errors#Expand(lint)
         if a:lint.col > 1
             let a:lint.end_col = a:lint.col + len(symbol)
         endif
-        let a:lint.nr = 'symbol:' . symbol
+        call hearth#lint#errors#Pack(a:lint, 'symbol', symbol)
         return a:lint
     endif
 
@@ -19,7 +35,7 @@ func! hearth#lint#errors#Expand(lint)
         if a:lint.col > 1
             let a:lint.end_col = a:lint.col + len(symbol)
         endif
-        let a:lint.nr = 'var:' . symbol
+        call hearth#lint#errors#Pack(a:lint, 'var', symbol)
         return a:lint
     endif
 
@@ -27,7 +43,7 @@ func! hearth#lint#errors#Expand(lint)
     if !empty(match)
         let ns = match[1]
         let a:lint.end_col = a:lint.col + len(ns)
-        let a:lint.nr = 'ns:' . ns
+        call hearth#lint#errors#Pack(a:lint, 'ns', ns)
         return a:lint
     endif
 
@@ -41,7 +57,7 @@ func! hearth#lint#errors#Expand(lint)
     let match = matchlist(a:lint.text, '^\(.\+\) already refers to')
     if !empty(match)
         let symbol = match[1]
-        let a:lint.nr = 'dup-refer:' . symbol
+        call hearth#lint#errors#Pack(a:lint, 'dup-refer', symbol)
         return a:lint
     endif
 

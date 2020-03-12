@@ -22,8 +22,8 @@ func! s:isRelatedTo(context, val) abort
         return 0
     endif
 
-    let [thisKind, thisArg] = split(a:context.nr, ':')
-    let [otherKind, otherArg] = split(a:val.nr, ':')
+    let [thisKind, thisArg] = hearth#lint#errors#Unpack(a:context)
+    let [otherKind, otherArg] = hearth#lint#errors#Unpack(a:val)
     return s:areNrsRelated(thisKind, thisArg, otherKind, otherArg)
         \|| s:areNrsRelated(otherKind, otherArg, thisKind, thisArg)
 endfunc
