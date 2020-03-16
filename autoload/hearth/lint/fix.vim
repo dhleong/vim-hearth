@@ -38,7 +38,15 @@ endfunc
 
 func! hearth#lint#fix#Fix(bufnr, lines)
     let lints = ale#engine#GetLoclist(a:bufnr)
+    let kondo = filter(copy(lints), 'v:val.linter_name ==# "clj-kondo"')
     let lints = filter(copy(lints), 'v:val.linter_name ==# "hearth"')
+
+    if !empty(kondo)
+        " if we have any lints from clj-kondo, see if there's anything
+        " we can do about them
+        let kondoFilled = hearth#lint#kondo#Extract(kondo)
+        let lints = lints + kondoFilled
+    endif
 
     if !len(lints)
         return

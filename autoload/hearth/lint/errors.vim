@@ -15,6 +15,11 @@ func! hearth#lint#errors#Unpack(lint)
     return data
 endfunc
 
+func! hearth#lint#errors#Exists(lint)
+    " Check if the given lint has hearth error data on it
+    return has_key(a:lint, 'nr') && a:lint.nr != -1
+endfunc
+
 func! hearth#lint#errors#Expand(lint)
     " Given a lint entry (as sent to ALE, or used in the loclist)
     " expand it with extra info for more useful rendering

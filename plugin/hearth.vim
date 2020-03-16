@@ -1,7 +1,8 @@
 
 func! s:MaybeRequire()
     if hearth#pref#Get('auto_require', 1)
-        call hearth#ns#TryRequire()
+        call timer_start(750, { -> hearth#ns#TryRequire() })
+        " call hearth#ns#TryRequire()
     endif
 endfunc
 
