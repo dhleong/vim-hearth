@@ -12,6 +12,7 @@ before_install:
     - vvm install vimorg--v8.0.1529 --with-features=huge
     - vvm use vimorg--v8.0.1529
     -
+    - rvm reload
     - rvm use 2.5.0 --install --binary --fuzzy
 
 before_script:
