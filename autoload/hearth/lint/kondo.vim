@@ -15,7 +15,7 @@ func! s:expand(lint)
         return 1
     endif
 
-    let match = matchlist(a:lint.text, 'unresolved symbol \(\w*\)$')
+    let match = matchlist(a:lint.text, 'unresolved symbol \([^ ,.]*\)$')
     if !empty(match)
         let symbol = match[1]
         if a:lint.col > 1
