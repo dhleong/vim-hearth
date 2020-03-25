@@ -12,7 +12,11 @@ func! hearth#nav#create#Test()
     let type = expand('%:e')
     let path = expand('%:p')
     let path = substitute(path, '.' . type . '$', '_test.' . type, '')
-    let path = substitute(path, '/src/', '/test/', '')
+    if path =~# '/main/'
+        let path = substitute(path, '/main/', '/test/', '')
+    else
+        let path = substitute(path, '/src/', '/test/', '')
+    endif
 
     exe 'edit ' . path
     call s:ensureWritablePath()
