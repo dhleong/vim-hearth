@@ -25,9 +25,39 @@ Given clojure (Single refer):
 Execute (Add new :require):
   call InsertNs('serenity.cargo', 'refer', 'geisha-dolls')
 
-Expect clojure (Added new :require):
+Expect clojure (Insert new :require):
   (ns serenity.core
     (:require [serenity.cargo :refer [geisha-dolls medicine]]))
+
+"
+" =========================================================
+"
+
+Given clojure (Single refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls]]))
+
+Execute (Append new :require):
+  call InsertNs('serenity.cargo', 'refer', 'medicine')
+
+Expect clojure (Insert new :require):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [geisha-dolls medicine]]))
+
+"
+" =========================================================
+"
+
+Given clojure (Multi-refer):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [beef medicine]]))
+
+Execute (Add new :require in-between):
+  call InsertNs('serenity.cargo', 'refer', 'geisha-dolls')
+
+Expect clojure (Added new :require):
+  (ns serenity.core
+    (:require [serenity.cargo :refer [beef geisha-dolls medicine]]))
 
 "
 " =========================================================

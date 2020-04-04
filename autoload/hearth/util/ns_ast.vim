@@ -473,7 +473,8 @@ func! s:vectorInsertLiteral(literal) dict " {{{
             \ s:createLiteral("\n", 'ws'),
             \ s:createLiteral(indent, 'ws'),
             \ ], indentIndex)
-    elseif !empty(self.children) && index > 0
+    elseif !empty(self.children) && index == len(self.children)
+        " append
         let toInsert = insert(toInsert, s:createLiteral(' ', 'ws'), 0)
     elseif !empty(self.children)
         let toInsert = add(toInsert, s:createLiteral(' ', 'ws'))
