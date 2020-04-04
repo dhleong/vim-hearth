@@ -9,6 +9,10 @@ func! s:dictify(v)
         \ }
 endfunc
 
+func! s:filter(results)
+    return filter(a:results, 'hearth#util#search#IsAcceptableNs(v:val.ns)')
+endfunc
+
 func! hearth#util#apropos#Search(query)
     " Blocking apropos search. Maps results into a dictionary format:
     " { 'ns': 'symbol namespace',
@@ -29,7 +33,7 @@ func! hearth#util#apropos#Search(query)
             \ )
 
       if !empty(resp)
-        return resp
+        return s:filter(resp)
       endif
     catch /.*/
       " apropos not available
@@ -44,5 +48,5 @@ func! hearth#util#apropos#Search(query)
         return []
     endif
 
-    return map(resp[0]['apropos-matches'], 's:dictify(v:val)')
+    return s:filter(map(resp[0]['apropos-matches'], 's:dictify(v:val)'))
 endfunc

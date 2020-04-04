@@ -1,3 +1,6 @@
+func! s:filter(results)
+    return filter(a:results, 'hearth#util#search#IsAcceptableNs(v:val.name)')
+endfunc
 
 func! hearth#util#resolve_missing#Search(var)
     if !fireplace#op_available('resolve-missing')
@@ -19,5 +22,5 @@ func! hearth#util#resolve_missing#Search(var)
     let raw = substitute(raw, ':\(name\|type\) ', '"\1": "', 'g')
     let raw = substitute(raw, ', ', '", ', 'g')
     let raw = substitute(raw, '}', '"},', 'g')
-    return eval('[' . raw[1:-2] . ']')
+    return s:filter(eval('[' . raw[1:-2] . ']'))
 endfunc
