@@ -52,6 +52,16 @@ func! hearth#lint#errors#Expand(lint)
         return a:lint
     endif
 
+    let match = matchlist(a:lint.text, 'Invalid keyword: ::\([^/]*\)/\([^.]*\)\.')
+    if !empty(match)
+        let ns = match[1]
+        let name = match[2]
+        let a:lint.end_col = a:lint.col - 1
+        let a:lint.col = a:lint.col - len(ns) - len(name) - 1
+        call hearth#lint#errors#Pack(a:lint, 'ns', ns)
+        return a:lint
+    endif
+
     let match = matchlist(a:lint.text, '^EOF.*, starting at line \(\d*\)')
     if !empty(match)
         let line = match[1]
