@@ -15,7 +15,14 @@ func! s:AppendError(bufnr, entries, err) abort
 endfunc
 
 func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
-    let str = get(a:message, 'value', '')
+    " see usage below for explanation
+    if type(a:message) == v:t_dict
+        let message = a:message
+    else
+        let message = {'value': a:message, 'status': 'done'}
+    endif
+
+    let str = get(message, 'value', '')
     let lines = split(str, "\r\\=\n", 1)
     let entries = []
     for line in lines
@@ -42,7 +49,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
         call add(entries, entry)
     endfor
 
-    let err = get(a:message, 'err', '')
+    let err = get(message, 'err', '')
     if !empty(err)
         call s:AppendError(a:bufnr, entries, err)
     endif
@@ -53,7 +60,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
         call setqflist(entries, 'a')
     endif
 
-    if has_key(a:message, 'status')
+    if has_key(message, 'status')
         let list = a:id ? getqflist({'id': a:id, 'items': 1}).items : getqflist()
         if empty(filter(list, 'v:val.valid'))
             cwindow
@@ -80,7 +87,7 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
     " take it over and return a string.
     " NOTE: most of this was based on the original code in fireplace, just
     " adapted for use in a clojurescript context
-    let expr = '(symbol (clojure.string/trim'
+    let expr = '(clojure.string/trim'
             \. '  (with-out-str '
             \. '    (let [base-report cljs.test/report]'
             \. '      (binding [cljs.test/report (fn [{:keys [type] :as m}]'
@@ -96,11 +103,19 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
             \. '            (println "expected:" (pr-str (:expected m)))'
             \. '            (println "  actual:" (pr-str (:actual m))))'
             \. '          (base-report m)))]'
-            \. '        ' . a:expr . ')))))'
+            \. '        ' . a:expr . '))))'
 
     call setqflist([], ' ', {'title': a:expr})
     echo 'Started: ' . a:expr
-    call fireplace#cljs().Message({'op': 'eval', 'code': expr},
+
+    " NOTE: this older version is, I think, more robust. However, the symbol
+    " value seems to get truncated to the first whitespace when returned
+    " by the cljs repl (at least with shadow-cljs). Using Query without the
+    " symbol-ification seems to work as a reasonable stopgap, but it might
+    " be worth checking if the nrepl behavior is a bug in shadow-cljs...
+    " call fireplace#cljs().Message({'op':'eval', 'code': '(symbol ' . expr . ')', 'session': 0},
+
+    call fireplace#cljs().Query(expr,
         \ function('s:ReportCljsTestResults', [bufnr('%'), get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr]))
 endfunc
 
