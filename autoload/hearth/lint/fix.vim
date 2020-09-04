@@ -37,6 +37,12 @@ func! s:fixLint(bufnr, lines, lint)
 endfunc
 
 func! hearth#lint#fix#Fix(bufnr, lines)
+    " if we don't have an active fireplace connction, shortcircuit out
+    " to avoid noisy errors
+    if !hearth#util#SessionExists()
+        return
+    endif
+
     let lints = ale#engine#GetLoclist(a:bufnr)
     let kondo = filter(copy(lints), 'v:val.linter_name ==# "clj-kondo"')
     let lints = filter(copy(lints), 'v:val.linter_name ==# "hearth"')
