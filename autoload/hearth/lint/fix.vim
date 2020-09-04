@@ -3,6 +3,7 @@ let s:fixers = {
     \ 'dup-refer': function('hearth#lint#fix#dup_refer#Fix'),
     \ 'ns': function('hearth#lint#fix#ns#Fix'),
     \ 'symbol': function('hearth#lint#fix#symbol#Fix'),
+    \ 'unused-ns': function('hearth#lint#fix#unused_ns#Fix'),
     \ 'var': function('hearth#lint#fix#var#Fix'),
     \ }
 
@@ -32,6 +33,7 @@ func! s:fixLint(bufnr, lines, lint)
         \ 'line': a:lines[index],
         \ 'lineIndex': index,
         \ 'ns': fireplace#ns(),
+        \ 'type': expand('#' . a:bufnr . ':e')
         \ }
     return s:fixers[type](a:bufnr, context, info)
 endfunc

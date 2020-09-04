@@ -1,8 +1,12 @@
 Execute (Provide util fns):
   func! InsertNs(ns, mode, ...)
+    return call('InsertTypedNs', ['clj', a:ns, a:mode] + a:000)
+  endfunc
+
+  func! InsertTypedNs(type, ns, mode, ...)
     let results = []
     let lines = getline(0, line('$'))
-    let context = {'lines': lines}
+    let context = {'lines': lines, 'type': a:type}
     if a:0 == 0
       let results = hearth#lint#fix#refers#Insert(context, a:ns, a:mode)
     else

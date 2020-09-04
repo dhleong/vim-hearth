@@ -19,6 +19,10 @@ func! hearth#util#resolve_missing#Search(var)
     " the response is a stringified list of maps; this is hacky, but
     " we can munge it into a vim structure:
     let raw = resp['candidates']
+    if type(raw) == v:t_list
+        return s:filter(raw)
+    endif
+
     let raw = substitute(raw, ':\(name\|type\) ', '"\1": "', 'g')
     let raw = substitute(raw, ', ', '", ', 'g')
     let raw = substitute(raw, '}', '"},', 'g')

@@ -9,6 +9,7 @@ endfunc
 func! s:onFileLoaded(bufnr, state, resp) abort
     " check for lint
     call hearth#lint#CheckResponse(a:bufnr, a:state, a:resp)
+    " call hearth#lint#Notify(a:bufnr, []) " STOPSHIP
 
     if bufnr('%') == a:bufnr && s:isDone(a:resp)
         " if we have mantel, kick off a highlight proc after the load finishes
