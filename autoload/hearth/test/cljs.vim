@@ -22,6 +22,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
         let message = {'value': a:message, 'status': 'done'}
     endif
 
+
     let str = get(message, 'value', '')
     let lines = split(str, "\r\\=\n", 1)
     let entries = []
@@ -66,7 +67,12 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
             cwindow
 
             redraw
-            echo 'Success: ' . a:expr
+
+            if empty(a:path)
+                echo 'No failures, but also no path; is this file in the right place?'
+            else
+                echo 'Success: ' . a:expr
+            endif
         else
             if get(getqflist({'id': 0}), 'id') ==# a:id
                 let was_qf = &buftype ==# 'quickfix'
