@@ -6,13 +6,11 @@ endfunc
 func! s:generateTest(type, testNs, baseNs)
     let import = []
     if a:type ==# 'cljs'
-        let import = ['  (:require [cljs.test :refer-macros [deftest testing is]]',
-                    \ '            [cljs.nodejs :as node]',
+        let import = ['  (:require [cljs.test :refer-macros [deftest is testing]]',
                     \ '            [' . a:baseNs . ' :refer []]))']
     else
-
-        let import = ['  (:require [clojure.test :refer :all]',
-                    \ '            [' . a:baseNs . ' :refer :all]))']
+        let import = ['  (:require [clojure.test :refer [deftest is testing]]',
+                    \ '            [' . a:baseNs . ' :refer []]))']
     endif
 
     " was definitely new
