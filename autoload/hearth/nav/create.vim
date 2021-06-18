@@ -6,6 +6,25 @@ func! s:ensureWritablePath()
     endif
 endfunc
 
+func! s:projectNameUnderSrc(path)
+    let srcIdx = stridx(a:path, '/src/')
+    if srcIdx == -1
+        return ''
+    endif
+
+    let maybeProjectIdx = srcIdx + len('/src')
+    let maybeProjectEnd = stridx(a:path, '/', maybeProjectIdx + 1)
+    if maybeProjectEnd == -1
+        return ''
+    endif
+
+    if isdirectory(a:path[0:maybeProjectIdx] . 'test')
+        return a:path[maybeProjectIdx : maybeProjectEnd-1]
+    endif
+
+    return ''
+endfunc
+
 func! hearth#nav#create#Test()
     " Create (or open) a new test file for the *current* namespace
 
@@ -13,13 +32,25 @@ func! hearth#nav#create#Test()
     let path = expand('%:p')
     let path = substitute(path, '.' . type . '$', '_test.' . type, '')
     if path =~# '/main/'
+        " eg: src/main/ns
+        "     src/test/ns
         let path = substitute(path, '/main/', '/test/', '')
     else
-        let path = substitute(path, '/src/', '/test/', '')
+        let projectName = s:projectNameUnderSrc(path)
+        if projectName !=# ''
+            " eg: src/project1/ns
+            "     src/project2/ns
+            "     src/test/ns
+            let path = substitute(path, '/' . projectName . '/', '/test/', '')
+        else
+            " eg: src/ns
+            "     test/ns
+            let path = substitute(path, '/src/', '/test/', '')
+        endif
     endif
 
     exe 'edit ' . path
-    call s:ensureWritablePath()
+    " call s:ensureWritablePath()
 endfunc
 
 func! hearth#nav#create#RelativeNs(method, relativeNs)
