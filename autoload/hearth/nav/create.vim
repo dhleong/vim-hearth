@@ -19,7 +19,7 @@ func! s:projectNameUnderSrc(path)
     endif
 
     if isdirectory(a:path[0:maybeProjectIdx] . 'test')
-        return a:path[maybeProjectIdx : maybeProjectEnd-1]
+        return a:path[maybeProjectIdx + 1 : maybeProjectEnd-1]
     endif
 
     return ''
