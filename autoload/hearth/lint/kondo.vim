@@ -7,7 +7,7 @@ func! s:expand(lint)
 
     " kondo-specific errors:
 
-    let match = matchlist(a:lint.text, 'Unresolved namespace \([^ ,.]*\)')
+    let match = matchlist(a:lint.text, '[Uu]nresolved namespace[:]* \([^ ,.]*\)')
     if !empty(match)
         let ns = match[1]
         let a:lint.end_col = a:lint.col + len(ns)
@@ -15,7 +15,7 @@ func! s:expand(lint)
         return 1
     endif
 
-    let match = matchlist(a:lint.text, 'unresolved symbol \([^ ,.]*\)$')
+    let match = matchlist(a:lint.text, '[Uu]nresolved symbol[:]* \([^ ,.]*\)$')
     if !empty(match)
         let symbol = match[1]
         if a:lint.col > 1
