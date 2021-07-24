@@ -32,10 +32,23 @@ func! s:figwheelErrToLint(err) "{{{
         \ }
 endfunc "}}}
 
+func! s:shadowReplErrorToLint(err) " {{{
+    let m = matchlist(a:err, 'The required namespace "\(.*\)" is not available')
+    if len(m) > 1
+        return {
+            \ 'text': m[0],
+            \ 'type': 'E',
+            \ 'lnum': 1,
+            \ 'col': 1,
+            \ }
+    endif
+    return {}
+endfunc " }}}
+
 func! s:shadowErrToLint(err) " {{{
     let m = matchlist(a:err, '-- \(ERROR\|WARNING\) ')
     if empty(m)
-        return {}
+        return s:shadowReplErrorToLint(a:err)
     endif
 
     let type = m[1][0]  " IE the E or the W
@@ -126,6 +139,10 @@ func! hearth#lint#CheckResponse(bufnr, state, resp)
 
     let lint = s:errToLint(a:resp.err)
     if !empty(lint)
+        if !has_key(lint, 'filename')
+            let lint.filename = expand('#' . a:bufnr . ':p')
+        endif
+
         let a:state.lints = add(a:state.lints, lint)
     endif
     call hearth#lint#Notify(a:bufnr, a:state.lints)

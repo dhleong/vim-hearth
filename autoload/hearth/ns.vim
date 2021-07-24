@@ -63,7 +63,7 @@ func! hearth#ns#TryRequire(...)
             call fireplace#cljs().Message({
                 \ 'op': 'load-file',
                 \ 'file-path': expand('#' . bufnr . ':p'),
-                \ }, Callback)
+                \ }, v:t_dict, Callback)
         else
             " adapted from fireplace
             let ns = fireplace#ns()
