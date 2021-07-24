@@ -93,7 +93,6 @@ func! s:shadowErrToLint(err) " {{{
         let lint.filename = path
     endif
 
-    echom 'LINT = ' . string(lint)
     return lint
 endfunc " }}}
 
