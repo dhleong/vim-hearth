@@ -59,14 +59,17 @@ func! s:shadowErrToLint(err) " {{{
     let message = []
     for line in lines
         if linenr < 0
-            let m = matchlist(line, '^[ ]*File: \([^:]\+\):\(\d\+\):\(\d\+\)')
+            let m = matchlist(line, '^[ ]*\(File\|Resource\): \([^:]\+\):\(\d\+\):\(\d\+\)')
             if empty(m)
                 continue
             endif
 
-            let path = m[1]
-            let linenr = str2nr(m[2])
-            let col = m[3]
+            " NOTE: I'm not actually sure what the numbers following <eval>
+            " mean (they certainly aren't line numbers...)
+
+            let path = m[2]
+            let linenr = str2nr(m[3])
+            let col = m[4]
             continue
         endif
 
@@ -80,13 +83,18 @@ func! s:shadowErrToLint(err) " {{{
         return {}
     endif
 
-    return {
+    let lint = {
         \   'text': join(message, " \n"),
-        \   'filename': path,
         \   'lnum': linenr,
         \   'col': col,
         \   'type': type,
         \ }
+    if path !=# '' && path !=# '<eval>'
+        let lint.filename = path
+    endif
+
+    echom 'LINT = ' . string(lint)
+    return lint
 endfunc " }}}
 
 func! s:errToLint(err)

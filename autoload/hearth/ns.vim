@@ -80,7 +80,7 @@ func! hearth#ns#TryRequire(...)
             call fireplace#platform().Message({
                 \ 'op': 'eval',
                 \ 'code': code,
-                \ }, Callback)
+                \ }, v:t_dict, Callback)
         endif
     catch /Fireplace:.*REPL/
         redraw! | echohl Error | echo 'No REPL found' | echohl None
