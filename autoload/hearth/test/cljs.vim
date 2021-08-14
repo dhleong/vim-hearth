@@ -1,4 +1,7 @@
-func! s:AppendError(bufnr, entries, err) abort
+let s:initScriptPath = expand('<sfile>:p:h') . '/cljs-init.cljs'
+let s:printReportExpr = '(cljs.test/report {:type :hearth-report})'
+
+func! s:AppendError(bufnr, entries, err) abort " {{{
     let lines = split(a:err, "\r\\=\n", 1)
     let entries = a:entries
     call add(entries, {
@@ -12,21 +15,11 @@ func! s:AppendError(bufnr, entries, err) abort
         call add(entries, entry)
     endfor
     call add(entries, entry)
-endfunc
+endfunc " }}}
 
-func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
-    " see usage below for explanation
-    if type(a:message) == v:t_dict
-        let message = a:message
-    else
-        let message = {'value': a:message, 'status': 'done'}
-    endif
-
-
-    let str = get(message, 'value', '')
-    let lines = split(str, "\r\\=\n", 1)
+func! s:ParseResults(path, lines) abort " {{{
     let entries = []
-    for line in lines
+    for line in a:lines
         if line =~# '\t.*\t.*\t'
             let entry = {'text': line}
             let [resource, lnum, type, name] = split(line, "\t", 1)
@@ -49,10 +42,44 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
         endif
         call add(entries, entry)
     endfor
+    return entries
+endfunc " }}}
+
+func! s:CheckAsyncTestCompletion(bufnr, id, path, expr, _timer) abort
+    call fireplace#cljs().Query(
+        \   s:printReportExpr,
+        \   function(
+        \     's:ReportCljsTestResults',
+        \     [ a:bufnr, a:id, a:path, a:expr ]
+        \   )
+        \ )
+endfunc
+
+func! s:TriggerCheckAsyncTestCompletion(bufnr, id, path, expr) abort
+    echom 'Running... ' . a:expr
+    call timer_start(100, function('s:CheckAsyncTestCompletion', [ a:bufnr, a:id, a:path, a:expr ]))
+endfunc
+
+func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
+    " see usage below for explanation
+    if type(a:message) == v:t_dict
+        let message = a:message
+    else
+        let message = {'value': a:message, 'status': 'done'}
+    endif
+
+    let str = get(message, 'value', '')
+    let lines = split(str, "\r\\=\n", 1)
+    let entries = s:ParseResults(a:path, lines)
 
     let err = get(message, 'err', '')
     if !empty(err)
         call s:AppendError(a:bufnr, entries, err)
+    endif
+
+    if get(message, 'status', '') ==# 'done' && a:message == v:null
+        call s:TriggerCheckAsyncTestCompletion(a:bufnr, a:id, a:path, a:expr)
+        return
     endif
 
     if a:id
@@ -71,6 +98,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
             if empty(a:path)
                 echo 'No failures, but also no path; is this file in the right place?'
             else
+                echom 'lines=' . string(lines)
                 echo 'Success: ' . a:expr
             endif
         else
@@ -93,23 +121,32 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
     " take it over and return a string.
     " NOTE: most of this was based on the original code in fireplace, just
     " adapted for use in a clojurescript context
-    let expr = '(clojure.string/trim'
-            \. '  (with-out-str '
-            \. '    (let [base-report cljs.test/report]'
-            \. '      (binding [cljs.test/report (fn [{:keys [type] :as m}]'
-            \. '        (case type'
-            \. '          (:fail :error)'
-            \. '          (let [env (cljs.test/get-current-env)'
-            \. '                {:keys [file line] test :name} (meta (last (:testing-vars env)))]'
-            \. '            (println (clojure.string/join'
-            \. '                       "\t" [file line (name type) test]))'
-            \. '            (when (seq (:testing-contexts env))'
-            \. '              (println (cljs.test/testing-contexts-str)))'
-            \. '            (when-let [msg (:message m)] (println msg))'
-            \. '            (println "expected:" (pr-str (:expected m)))'
-            \. '            (println "  actual:" (pr-str (:actual m))))'
-            \. '          (base-report m)))]'
-            \. '        ' . a:expr . '))))'
+    let runTests = substitute(a:expr, 'run-tests', 'run-tests (cljs.test/empty-env :vim-hearth)', '')
+
+    " NOTE: The with-out-str here just prevents any errant prints
+    let expr = join(readfile(s:initScriptPath), "\n")
+            \. '(with-out-str'
+            \. '  ' . runTests . ')'
+            \. s:printReportExpr
+    let expr = '(do ' . expr . ')'
+
+    " let expr = '(clojure.string/trim'
+    "         \. '  (with-out-str '
+    "         \. '    (let [base-report cljs.test/report]'
+    "         \. '      (binding [cljs.test/report (fn [{:keys [type] :as m}]'
+    "         \. '        (case type'
+    "         \. '          (:fail :error)'
+    "         \. '          (let [env (cljs.test/get-current-env)'
+    "         \. '                {:keys [file line] test :name} (meta (last (:testing-vars env)))]'
+    "         \. '            (println (clojure.string/join'
+    "         \. '                       "\t" [file line (name type) test]))'
+    "         \. '            (when (seq (:testing-contexts env))'
+    "         \. '              (println (cljs.test/testing-contexts-str)))'
+    "         \. '            (when-let [msg (:message m)] (println msg))'
+    "         \. '            (println "expected:" (pr-str (:expected m)))'
+    "         \. '            (println "  actual:" (pr-str (:actual m))))'
+    "         \. '          (base-report m)))]'
+    "         \. '        ' . a:expr . '))))'
 
     call setqflist([], ' ', {'title': a:expr})
     echo 'Started: ' . a:expr
@@ -121,6 +158,7 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
     " be worth checking if the nrepl behavior is a bug in shadow-cljs...
     " call fireplace#cljs().Message({'op':'eval', 'code': '(symbol ' . expr . ')', 'session': 0},
 
+    " echom fireplace#cljs().Message({'op':'eval', 'code': expr}, v:t_dict)
     call fireplace#cljs().Query(expr,
         \ function('s:ReportCljsTestResults', [bufnr('%'), get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr]))
 endfunc
