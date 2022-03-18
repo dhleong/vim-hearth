@@ -1,3 +1,6 @@
+func! hearth#path#DetectBabashka()
+    return getline(1) =~# '^#!/usr/bin/env bb'
+endfunc
 
 func! hearth#path#DetectShadowJs()
     if expand('%:t') ==# 'shadow-cljs.edn'
@@ -65,6 +68,12 @@ func! hearth#path#GuessPort(...)
                 endif
             endif
         endif
+    endif
+
+    " Babashka single-file script?
+    if hearth#path#DetectBabashka()
+        " Babashka nrepl-server defaults to this port
+        return 1667
     endif
 
     " fall back to default
