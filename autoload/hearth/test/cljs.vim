@@ -1,5 +1,7 @@
 let s:initScriptPath = expand('<sfile>:p:h') . '/cljs-init.cljs'
 let s:printReportExpr = '(cljs.test/report {:type :hearth-report})'
+let s:retryDelayMs = 100
+let s:timeoutRetryCount = 50 " ~5s
 
 func! s:AppendError(bufnr, entries, err) abort " {{{
     let lines = split(a:err, "\r\\=\n", 1)
@@ -45,22 +47,27 @@ func! s:ParseResults(path, lines) abort " {{{
     return entries
 endfunc " }}}
 
-func! s:CheckAsyncTestCompletion(bufnr, id, path, expr, _timer) abort
+func! s:CheckAsyncTestCompletion(bufnr, id, path, expr, retryCount, _timer) abort
+    if a:retryCount > s:timeoutRetryCount
+        echom 'Timeout: ' . a:expr
+        return
+    endif
+
     call fireplace#cljs().Query(
         \   s:printReportExpr,
         \   function(
         \     's:ReportCljsTestResults',
-        \     [ a:bufnr, a:id, a:path, a:expr ]
+        \     [ a:bufnr, a:id, a:path, a:expr, a:retryCount + 1 ]
         \   )
         \ )
 endfunc
 
-func! s:TriggerCheckAsyncTestCompletion(bufnr, id, path, expr) abort
+func! s:TriggerCheckAsyncTestCompletion(bufnr, id, path, expr, retryCount) abort
     echom 'Running... ' . a:expr
-    call timer_start(100, function('s:CheckAsyncTestCompletion', [ a:bufnr, a:id, a:path, a:expr ]))
+    call timer_start(s:retryDelayMs, function('s:CheckAsyncTestCompletion', [ a:bufnr, a:id, a:path, a:expr, a:retryCount ]))
 endfunc
 
-func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
+func! s:ReportCljsTestResults(bufnr, id, path, expr, retryCount, message) abort
     " see usage below for explanation
     if type(a:message) == v:t_dict
         let message = a:message
@@ -78,7 +85,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
     endif
 
     if get(message, 'status', '') ==# 'done' && a:message == v:null
-        call s:TriggerCheckAsyncTestCompletion(a:bufnr, a:id, a:path, a:expr)
+        call s:TriggerCheckAsyncTestCompletion(a:bufnr, a:id, a:path, a:expr, a:retryCount)
         return
     endif
 
@@ -98,7 +105,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, message) abort
             if empty(a:path)
                 echo 'No failures, but also no path; is this file in the right place?'
             else
-                echom 'lines=' . string(lines)
+                echom lines
                 echo 'Success: ' . a:expr
             endif
         else
@@ -160,7 +167,7 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
 
     " echom fireplace#cljs().Message({'op':'eval', 'code': expr}, v:t_dict)
     call fireplace#cljs().Query(expr,
-        \ function('s:ReportCljsTestResults', [bufnr('%'), get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr]))
+        \ function('s:ReportCljsTestResults', [bufnr('%'), get(getqflist({'id': 0}), 'id'), fireplace#path(), a:expr, 0]))
 endfunc
 
 func! hearth#test#cljs#Run(file, ns)

@@ -42,20 +42,35 @@ endfunc
 
 func! hearth#path#GuessPort(...)
     let default = a:0 ? a:1 : 7888
-
+    let l:extension = expand('%:e')
     let l:root = hearth#path#GuessRoot()
-    let l:path = expand(l:root . '/.nrepl-port')
-    if filereadable(l:path)
-        return readfile(l:path)[0]
-    endif
+    let l:nreplPath = expand(l:root . '/.nrepl-port')
 
     " shadow-cljs?
-    let l:path = expand(l:root . '/.shadow-cljs/nrepl.port')
-    if filereadable(l:path)
-        return readfile(l:path)[0]
+    let l:shadowPath = expand(l:root . '/.shadow-cljs/nrepl.port')
+    if filereadable(l:shadowPath)
+        let l:useShadow = 1
+
+        if l:extension ==# 'clj' && filereadable(l:nreplPath)
+            let l:useShadow = 0
+            let l:sourcePaths = hearth#shadow#GetSourcePaths(l:root)
+            let l:currentFile = expand('%:p')
+            for l:path in l:sourcePaths
+                if currentFile[0:len(l:path)] ==# l:path
+                    let l:useShadow = 1
+                    break
+                endif
+            endfor
+
+            " TODO: Check that the file is actually in a :source-path
+        endif
+
+        if l:useShadow
+            return readfile(l:shadowPath)[0]
+        endif
     endif
 
-    if expand('%:e') ==# 'cljs'
+    if l:extension ==# 'cljs' || l:extension ==# 'cljc'
         " for clojurescript sources, we might be trying to connect
         "  to a figwheel port
         let l:path = l:root . '/project.clj'
@@ -68,6 +83,11 @@ func! hearth#path#GuessPort(...)
                 endif
             endif
         endif
+    endif
+
+    " Standard nrepl
+    if filereadable(l:nreplPath)
+        return readfile(l:nreplPath)[0]
     endif
 
     " Babashka single-file script?

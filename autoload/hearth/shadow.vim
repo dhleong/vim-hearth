@@ -58,6 +58,34 @@ func! s:activateBuild(port, id)
     echo 'Connected to shadow-cljs' . a:id . ' on port ' . a:port
 endfunc
 
+func! hearth#shadow#GetSourcePaths(root)
+    let exe = 'shadow-cljs'
+    if !executable(exe)
+        let exe = resolve(a:root . '/node_modules/.bin/shadow-cljs')
+        if !filereadable(exe)
+            return []
+        endif
+    endif
+
+    let output = systemlist([exe, 'info'])
+    let start = 0
+    while start < len(output) && stridx(output[start], 'Source Paths') == -1
+        let start = start + 1
+    endwhile
+
+    if start >= len(output)
+        return []
+    endif
+
+    let start = start + 1
+    let end = start + 1
+    while end < len(output) && len(output[end]) > 0
+        let end = end + 1
+    endwhile
+
+    return output[start:end-1]
+endfunc
+
 func! hearth#shadow#SelectBuild(port)
     let builds = s:extractBuilds()
     if empty(builds)

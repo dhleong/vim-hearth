@@ -45,6 +45,7 @@ func! hearth#repl#Connect(...)
 
     let l:port = a:0 ? a:1 : hearth#path#GuessPort()
     let l:root = hearth#path#GuessRoot()
+    let l:extension = expand('%:e')
 
     if hearth#path#DetectBabashka()
         " A `bb nrepl-server` *may* have been spawned externally; try
@@ -61,7 +62,7 @@ func! hearth#repl#Connect(...)
     try
         call s:Connect(l:port, l:root)
 
-        if 'cljs' ==# expand('%:e')
+        if l:extension ==# 'cljs' || l:extension ==# 'cljc'
             " prepare piggieback
             if hearth#path#DetectShadowJs()
                 call hearth#shadow#SelectBuild(l:port)
