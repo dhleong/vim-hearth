@@ -135,7 +135,7 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
             \. '(with-out-str'
             \. '  ' . runTests . ')'
             \. s:printReportExpr
-    let expr = '(do ' . expr . ')'
+    let expr = '(try ' . expr . ' (catch :default e {:err (str e), :status :err}))'
 
     " let expr = '(clojure.string/trim'
     "         \. '  (with-out-str '
