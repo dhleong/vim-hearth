@@ -19,34 +19,6 @@ func! s:AppendError(bufnr, entries, err) abort " {{{
     call add(entries, entry)
 endfunc " }}}
 
-func! s:ParseResults(path, lines) abort " {{{
-    let entries = []
-    for line in a:lines
-        if line =~# '\t.*\t.*\t'
-            let entry = {'text': line}
-            let [resource, lnum, type, name] = split(line, "\t", 1)
-            let entry.lnum = lnum
-            let entry.type = (type ==# 'fail' ? 'W' : 'E')
-            let entry.text = name
-            if resource ==# 'NO_SOURCE_FILE'
-                let resource = ''
-                let entry.lnum = 0
-            endif
-            let entry.filename = resource
-            if !filereadable(entry.filename)
-                let entry.filename = fireplace#findresource(resource, a:path)
-            endif
-            if empty(entry.filename)
-                let entry.lnum = 0
-            endif
-        else
-            let entry = {'text': line}
-        endif
-        call add(entries, entry)
-    endfor
-    return entries
-endfunc " }}}
-
 func! s:CheckAsyncTestCompletion(bufnr, id, path, expr, retryCount, _timer) abort
     if a:retryCount > s:timeoutRetryCount
         echom 'Timeout: ' . a:expr
@@ -77,7 +49,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, retryCount, message) abort
 
     let str = get(message, 'value', '')
     let lines = split(str, "\r\\=\n", 1)
-    let entries = s:ParseResults(a:path, lines)
+    let entries = hearth#test#util#ParseResults(a:path, lines)
 
     let err = get(message, 'err', '')
     if !empty(err)
@@ -96,30 +68,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, retryCount, message) abort
     endif
 
     if has_key(message, 'status')
-        let list = a:id ? getqflist({'id': a:id, 'items': 1}).items : getqflist()
-        if empty(filter(list, 'v:val.valid'))
-            cwindow
-
-            redraw
-
-            if empty(a:path)
-                echo 'No failures, but also no path; is this file in the right place?'
-            else
-                echom lines
-                echo 'Success: ' . a:expr
-            endif
-        else
-            if get(getqflist({'id': 0}), 'id') ==# a:id
-                let was_qf = &buftype ==# 'quickfix'
-                botright copen
-                if &buftype ==# 'quickfix' && !was_qf
-                    wincmd p
-                endif
-
-                redraw
-                echo 'Failure: ' . a:expr
-            endif
-        endif
+        call hearth#test#util#PresentTestResults(a:id, a:path, a:expr)
     endif
 endfunc
 
