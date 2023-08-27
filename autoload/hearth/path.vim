@@ -1,5 +1,13 @@
 func! hearth#path#DetectBabashka()
-    return getline(1) =~# '^#!/usr/bin/env bb'
+    if getline(1) =~# '^#!/usr/bin/env bb'
+        return 1
+    endif
+
+    if filereadable(expand(hearth#path#GuessRoot() . '/bb.edn'))
+        return 1
+    endif
+
+    return 0
 endfunc
 
 func! hearth#path#DetectShadowJs()
@@ -90,7 +98,7 @@ func! hearth#path#GuessPort(...)
         return readfile(l:nreplPath)[0]
     endif
 
-    " Babashka single-file script?
+    " Babashka project/single-file script?
     if hearth#path#DetectBabashka()
         " Babashka nrepl-server defaults to this port
         return 1667

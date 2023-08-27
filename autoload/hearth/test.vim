@@ -30,6 +30,8 @@ func! hearth#test#RunForBuffer()
     if ext ==# 'cljs'
         let path = hearth#path#FileFromNs(ns, 'cljs')
         call hearth#test#cljs#Run(path, ns)
+    elseif hearth#util#host#IsBabashka()
+        call hearth#test#bb#Run(ns)
     else
         exe 'RunTests ' . ns
     endif
