@@ -21,7 +21,10 @@
         (with-out-str
           (doseq [{:keys [file line type] test :name :as m} (:fails state)]
             (println (clojure.string/join
-                       "\t" [file line (name type) test]))
+                       "\t" [(or file "NO_SOURCE_FILE")
+                             line
+                             (name type)
+                             test]))
             (when-let [contexts (:contexts m)] (println contexts))
             (when-let [msg (:message m)] (println msg))
             (println "expected:" (pr-str (:expected m)))

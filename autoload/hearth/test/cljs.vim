@@ -68,7 +68,11 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, retryCount, message) abort
     endif
 
     if has_key(message, 'status')
-        call hearth#test#util#PresentTestResults(a:id, a:path, a:expr)
+        try
+            call hearth#test#util#PresentTestResults(a:id, a:path, a:expr)
+        catch /.*/
+            echom "ERROR" .. v:exception
+        endtry
     endif
 endfunc
 

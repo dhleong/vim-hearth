@@ -1,3 +1,16 @@
+func! s:IsValidErrorEntry(entry)
+    let entry = a:entry
+    if entry.valid || entry.text =~ "\tfail\t"
+        return 1
+    endif
+
+    if entry.type ==# 'W' && entry.text ==# ''
+        return 1
+    endif
+
+    return 0
+endfunc
+
 func! hearth#test#util#ParseResults(path, lines) abort " {{{
     let entries = []
     for line in a:lines
@@ -28,7 +41,8 @@ endfunc " }}}
 
 func! hearth#test#util#PresentTestResults(id, path, expr)
     let list = a:id ? getqflist({'id': a:id, 'items': 1}).items : getqflist()
-    if empty(filter(list, 'v:val.valid'))
+    let noneValid = empty(filter(list, 's:IsValidErrorEntry(v:val)'))
+    if noneValid
         cwindow
 
         redraw
