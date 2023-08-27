@@ -29,6 +29,13 @@
             (when-let [msg (:message m)] (println msg))
             (println "expected:" (pr-str (:expected m)))
             (println "  actual:" #_(pr-str (:actual m)))
-            (cljs.pprint/pprint (:actual m))))))))
+            (cljs.pprint/pprint (:actual m)))
+
+          (when-some [stdout (:stdout state)]
+            (println "\nStandard Output:")
+            (println stdout)))))))
+
+(defn report-test-output [output]
+  (swap! vim-hearth-async-results assoc :stdout output))
 
 (reset! vim-hearth-async-results nil)

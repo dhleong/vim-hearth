@@ -49,6 +49,7 @@ func! s:ReportCljsTestResults(bufnr, id, path, expr, retryCount, message) abort
 
     let str = get(message, 'value', '')
     let lines = split(str, "\r\\=\n", 1)
+    let b:last_lines = lines
     let entries = hearth#test#util#ParseResults(a:path, lines)
 
     let err = get(message, 'err', '')
@@ -83,10 +84,10 @@ func! hearth#test#cljs#CaptureTestRun(expr) abort
     " adapted for use in a clojurescript context
     let runTests = substitute(a:expr, 'run-tests', 'run-tests (cljs.test/empty-env :vim-hearth)', '')
 
-    " NOTE: The with-out-str here just prevents any errant prints
     let expr = join(readfile(s:initScriptPath), "\n")
-            \. '(with-out-str'
-            \. '  ' . runTests . ')'
+            \. '(report-test-output'
+            \. '  (with-out-str'
+            \. '    ' . runTests . '))'
             \. s:printReportExpr
     let expr = '(try ' . expr . ' (catch :default e {:err (str e), :status :err}))'
 
