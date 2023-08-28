@@ -4,7 +4,7 @@ func! s:IsValidErrorEntry(entry)
         return 1
     endif
 
-    if entry.type ==# 'W' && entry.text ==# ''
+    if entry.type ==# 'W'
         return 1
     endif
 
