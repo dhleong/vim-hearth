@@ -53,7 +53,7 @@ func! hearth#repl#Connect(...)
         try
             call s:Connect(l:port, l:root)
             return
-        catch /Fireplace:.*Connection Refused/
+        catch /Fireplace:.*Connection [rR]efused/
             " Doesn't exist; spawn it!
             call s:EnsureBabashkaNrepl()
         endtry
