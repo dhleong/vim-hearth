@@ -68,3 +68,12 @@ func! hearth#tpl#Fill()
         call cursor(2, 12) " prepare to update the :doc
     endif
 endfunc
+
+func! hearth#tpl#MaybeFill()
+    let lines = getbufline('%', 1, '$')
+    if !(empty(lines) || (len(lines) == 1 && lines[0] == ""))
+        return
+    endif
+
+    call hearth#tpl#Fill()
+endfunc
