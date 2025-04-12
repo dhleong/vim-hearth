@@ -42,6 +42,8 @@ let s:initialState = {
     \ 'lints': [],
     \ }
 
+let s:useLoadFileOpExts = { 'cljs': 1, 'fnl': 1 }
+
 func! hearth#ns#TryRequire(...)
     " :Require the current ns, but only if there's an active session
 
@@ -59,8 +61,8 @@ func! hearth#ns#TryRequire(...)
     try
         let state = deepcopy(s:initialState)
         let Callback = function('s:onFileLoaded', [bufnr, state])
-        if ext ==# 'cljs' && s:canUseLoadFileOp()
-            call fireplace#cljs().Message({
+        if s:useLoadFileOpExts[ext] && s:canUseLoadFileOp()
+            call fireplace#platform().Message({
                 \ 'op': 'load-file',
                 \ 'file-path': expand('#' . bufnr . ':p'),
                 \ }, v:t_dict, Callback)
