@@ -19,6 +19,10 @@ func! s:createMaps() " {{{
 endfunc " }}}
 
 func! hearth#Activate()
+    if &ft == 'fennel' && hearth#pref#Get('enable_fennel', 0)
+        call fireplace#activate()
+    endif
+
     if hearth#pref#Get('create_maps', 1)
         call s:createMaps()
     endif
