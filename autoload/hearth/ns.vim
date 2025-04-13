@@ -61,7 +61,7 @@ func! hearth#ns#TryRequire(...)
     try
         let state = deepcopy(s:initialState)
         let Callback = function('s:onFileLoaded', [bufnr, state])
-        if s:useLoadFileOpExts[ext] && s:canUseLoadFileOp()
+        if get(s:useLoadFileOpExts, ext) && s:canUseLoadFileOp()
             call fireplace#platform().Message({
                 \ 'op': 'load-file',
                 \ 'file-path': expand('#' . bufnr . ':p'),
