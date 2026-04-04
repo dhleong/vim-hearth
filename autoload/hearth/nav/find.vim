@@ -1,11 +1,21 @@
 
 func! s:findAlt(ext)
     let ext = expand('%:e')
-    let fileName = substitute(
-                \ expand('%'),
-                \ '.' . ext . '$',
-                \ '_test.' . a:ext,
-                \ '')
+    let at = expand('%')
+
+    if at =~# "_test." . ext . "$"
+        let fileName = substitute(
+                    \ at,
+                    \ '_test.' . ext . '$',
+                    \ '.' . a:ext,
+                    \ '')
+    else
+        let fileName = substitute(
+                    \ at,
+                    \ '.' . ext . '$',
+                    \ '_test.' . a:ext,
+                    \ '')
+    endif
 
     let dir = expand('%:p:h:t')
 
