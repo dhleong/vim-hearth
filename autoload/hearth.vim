@@ -1,3 +1,6 @@
+func! s:createCommands() " {{{
+    command! -nargs=1 CljUndef call hearth#ns#Undef(<q-args>)
+endfunc " }}}
 
 func! s:createMaps() " {{{
     nnoremap <buffer> cpt :call hearth#test#RunForBuffer()<cr>
@@ -21,6 +24,10 @@ endfunc " }}}
 func! hearth#Activate()
     if &ft == 'fennel' && hearth#pref#Get('enable_fennel', 0)
         call fireplace#activate()
+    endif
+
+    if hearth#pref#Get('create_commands', 1)
+        call s:createCommands()
     endif
 
     if hearth#pref#Get('create_maps', 1)
